@@ -103,7 +103,7 @@ private:
 	bool flat_tasks;
 	double p_task_initially_active, p_impossible_task, p_activate_task;
 	double min_task_time, max_task_time, min_task_work, max_task_work, min_task_reward, max_task_reward;
-	double min_travel_vel, max_travel_vel;
+	double min_travel_vel, max_travel_vel, min_agent_work, max_agent_work;
 	double map_width, map_height;
 	double p_pay_obstacle_cost; // probability that a generated agent will have to pay obstacle tolls
 

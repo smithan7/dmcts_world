@@ -78,7 +78,6 @@ Agent::Agent(ros::NodeHandle nHandle, const int &index, const int &type, const d
 	this->edge_progress = 1.0;
 	this->index = index;
 	this->collected_reward = 0.0;
-
 	this->work_radius = work_radius;
 	this->type = type;
 	this->travel_vel = travel_vel;
@@ -86,7 +85,6 @@ Agent::Agent(ros::NodeHandle nHandle, const int &index, const int &type, const d
 	this->pay_obstacle_cost = pay_obstacle_cost;
 	this->color = color;
 	this->n_tasks =  this->world->get_n_nodes();
-
 	this->goal_node = new Goal();
 	this->planner = new Agent_Planning(this, world);
 	this->coordinator = new Agent_Coordinator(this, n_tasks);

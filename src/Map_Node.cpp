@@ -36,6 +36,8 @@ Map_Node::Map_Node(const double &x, const double &y, const int &index, const dou
 	this->min_work = world->get_min_task_work(this->task_type);
 	this->max_work = world->get_max_task_work(this->task_type);
 
+	this->work_radius = 5.0;
+
 	// start setting it up
 	this->active = false;
 	if (p_active > world->rand_double_in_range(0.0, 1.0)) {
@@ -58,18 +60,24 @@ void Map_Node::update_task(World* world) {
 	}
 }
 
-void Map_Node::get_worked_on(const double &x, const double &y, const int &agent_type, const double &work_rate, const double &c_time, double &agent_work, double &reward_collected){
-	agent_work = 0.0;
-	reward_collected = 0.0;
-
+bool Map_Node::get_worked_on(const double &x, const double &y, const int &agent_type, const double &work_rate, const double &c_time, double &agent_work, double &reward_collected){
 	double dist = sqrt( pow(this->x - x, 2) + pow(this->y - y, 2));
 	if(dist <= this->work_radius){
-		agent_work = this->agent_work[agent_type] / work_rate;
-		this->remaining_work -= agent_work;
+		agent_work = this->agent_work[agent_type] * work_rate;
+		this->remaining_work -= this->agent_work[agent_type] * work_rate;
 		if (this->remaining_work <= 0.0) {
 			reward_collected = this->get_reward_at_time(c_time);
 			this->deactivate();
 		}
+		else{
+			reward_collected = 0.0;
+		}
+		return true;
+	}
+	else{
+		agent_work = 0.0;
+		reward_collected = 0.0;
+		return false;
 	}
 }
 

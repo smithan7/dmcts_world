@@ -27,7 +27,7 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	this->mcts_search_type = "SW-UCT"; // UCT or SW-UCT
 	this->mcts_reward_type = "normal"; // "impact";
 	this->impact_style = "nn";
-	this->mcts_n_kids = 5;
+	this->mcts_n_kids = 10;
 	this->world_directory = world_directory;
 	this->n_agents = number_of_agents_in;
 	this->flat_tasks = true;
@@ -55,8 +55,8 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 		// seed the randomness in the simulator
 		srand(int(time(NULL)));
 		this->rand_seed = rand() % 1000000;
-		ROS_WARN("	GENERATED RAND_SEED: %i", this->rand_seed);
-		ROS_WARN("	Setting RAND_SEED param");
+		ROS_INFO("	GENERATED RAND_SEED: %i", this->rand_seed);
+		ROS_INFO("	Setting RAND_SEED param");
 		ros::param::set("parameter_seed", this->rand_seed);
 
 		// time stuff
@@ -80,18 +80,20 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 		this->p_task_initially_active = 0.625; // how likely is it that a task is initially active, 3-0.25, 5-0.5, 7-0.75
 		this->p_impossible_task = 0.0; // how likely is it that an agent is created that cannot complete a task
 		this->p_activate_task = 0.0;// 1.0*this->dt; // how likely is it that I will activate a task each second? *dt accounts per iters per second
-		this->min_task_time = 100.0; // shortest time to complete a task
-		this->max_task_time = 600.0; // longest time to complete a task
-		this->min_task_work = 1.0;
-		this->max_task_work = 1.0;
-		this->min_task_reward = 100.0;
-		this->max_task_reward = 500.0;
+		this->min_task_time = 1000.0; // shortest time to complete a task
+		this->max_task_time = 6000.0; // longest time to complete a task
+		this->min_task_work = 1.0; // min work to complete a task
+		this->max_task_work = 1.0; // max work to complete a task
+		this->min_task_reward = 100.0; // min reward for completing a task
+		this->max_task_reward = 500.0; // max reward for completing a task
 
 		// agent stuff
 		// set through param this->n_agents = 2; // how many agents
-		this->n_agent_types = 4; // how many types of agents
-		this->min_travel_vel = 15.0; // 5 - slowest travel speed
-		this->max_travel_vel = 50.0; // 25 - fastest travel speed
+		this->n_agent_types = 1; // how many types of agents
+		this->min_travel_vel = 1.9; // 5 - slowest travel speed
+		this->max_travel_vel = 1.95; // 25 - fastest travel speed
+		this->min_agent_work = 100.0; // min amount of work an agent does per second
+		this->max_agent_work = 100.0; // max amount of work an agent does per second
 
 		// write params
 		this->write_params();
@@ -121,8 +123,6 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	// initialize agents
 	this->initialize_agents(nHandle);
 	this->initialized = true;
-
-	this->display_world(1);
 }
 
 void World::clock_callback(const rosgraph_msgs::Clock &tmIn){
@@ -150,17 +150,22 @@ bool World::send_task_list_callback(custom_messages::Get_Task_List::Request &req
 
 bool World::complete_work_callback(custom_messages::Complete_Work::Request &req, custom_messages::Complete_Work::Response &resp){
 	try{
-		//ROS_ERROR("World::complete_work_callback: node[%i] at loc (%.2f, %.2f) by agent type (%i) with rate (%.2f)", req.n_index, req.xLoc, req.yLoc, req.a_type, req.work_rate);
 		if( this->nodes[req.n_index] && this->nodes[req.n_index]->is_active()){
 			this->nodes[req.n_index]->get_worked_on(req.xLoc, req.yLoc, req.a_type, req.work_rate, req.c_time, resp.work_done, resp.reward_collected);
 		}
 		else{
+			if(this->nodes[req.n_index]){
+				ROS_WARN("World::complete_work_callback: node[%i] is not valid");
+			}
+			else if(this->nodes[req.n_index]->is_active()){
+				ROS_WARN("World::complete_work_callback: node[%i] is not active");	
+			}
 			resp.work_done = 0.0;
 			resp.reward_collected = 0.0;
 		}
 	}
 	catch(...){
-		ROS_ERROR("World::complete_work_callback: node[%i] at loc (%.2f, %.2f) by agent type (%i) with rate (%.2f)", req.n_index, req.xLoc, req.yLoc, req.a_type, req.work_rate);
+		ROS_ERROR("World::complete_work_callback: node[%i] at loc (%.2f, %.2f) by agent type (%i) with rate (%.2f) failed", req.n_index, req.xLoc, req.yLoc, req.a_type, req.work_rate);
 	}
 	return true;
 }
@@ -587,7 +592,7 @@ void World::initialize_agents(ros::NodeHandle nHandle) {
 	//fs["agent_work_radii"] >> agent_work_radii;
 	std::vector<int> agent_types;
 	//fs["agent_types"] >> agent_types;
-	for(int i=0; i<this->n_agent_types; i++){
+	for(int i=0; i<this->n_agents; i++){
 		agent_types.push_back(0);
 	}
 
@@ -613,7 +618,6 @@ void World::initialize_agents(ros::NodeHandle nHandle) {
 			agent_colors.push_back(color);
 		}
 	}
-
 	for (int i = 0; i < this->n_agents; i++) {
 		int tp = agent_types[i];
 		Agent* a = new Agent(nHandle, i, tp, agent_travel_vels[tp], agent_colors[tp], agent_obstacle_costs[tp], agent_work_radii[tp], this);
@@ -773,8 +777,7 @@ void World::initialize_nodes_and_tasks() {
 				at.push_back(double(INFINITY));
 			}
 			else {
-				double tt = this->rand_double_in_range(this->min_task_time, this->max_task_time);
-				at.push_back(tt);
+				at.push_back(this->rand_double_in_range(this->min_agent_work, this->max_agent_work));
 			}
 		}
 		task_work_by_agent.push_back(at);
