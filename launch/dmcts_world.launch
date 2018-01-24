@@ -1,0 +1,23 @@
+
+<launch>
+	<arg name="num_agents"/>
+	<arg name="num_nodes"/>
+	<node pkg="tf" type="static_transform_publisher" name="static_tf_broadcast_1" args="1 0 0 0 0 0 1 map uav1/world 100"/>
+
+	<node pkg="tf" type="static_transform_publisher" name="static_tf_broadcast_2" args="1 0 0 0 0 0 1 map uav2/world 100"/>
+
+
+	<!--node pkg="dmcts_world" name="dmcts_world" type="main.py" output="screen"/-->
+
+	<depend package="my_custom_msg_package" />
+	<group ns="dmcts">
+	    <node pkg="dmcts_world" name="dmcts_world" type="dmcts_world" output="screen"/>
+	    <param name="test_environment_number" value="0"/>
+	    <param name="param_number" value="0"/>
+	    <param name="number_of_agents" value="$(arg num_agents)"/>
+	    <param name="world_directory" type="str" value="/home/andy/catkin_ws/src/dmcts_world/worlds/"/>
+	    <param name="score_run" type="bool" value="false"/>
+	    <param name="display_map" type="bool" value="true"/>
+    	<param name="number_of_nodes" value="$(arg num_nodes)"/>
+	</group>
+</launch>
