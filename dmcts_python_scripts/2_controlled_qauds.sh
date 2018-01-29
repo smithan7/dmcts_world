@@ -1,4 +1,8 @@
 #!/bin/bash
+
+n_agents=2
+n_nodes=20
+param=-1
  
 my_pid=$$
 echo "My process ID is $my_pid"
@@ -17,11 +21,15 @@ roslaunch gazebo_ros empty_world.launch & #willowgarage_world.launch &
 pid="$pid $!"
 sleep 5s
 
-echo "launching hector quadrotor with kinect"
-roslaunch hector_quadrotor_gazebo spawn_two_quadrotors.launch &
-pid="$pid $!"
-sleep 10s
-
+declare -a xs=(-25 25 -25);
+declare -a ys=(-25 25 25);
+echo "launching hector quadrotors"
+for ai in `seq 0 1`
+do
+    roslaunch hector_quadrotor_gazebo spawn_n_quadrotor.launch agent_index:=$ai x_start:=${xs[ai]} y_start:=${ys[ai]} &
+    pid="$pid $!"
+    sleep 5s
+done
 
 #echo "launching rviz"
 #rviz &
@@ -29,14 +37,19 @@ sleep 10s
 #sleep 10s
 
 echo "launching dmcts_world_node"
-roslaunch dmcts_world dmcts_world.launch num_agents:=2 num_nodes:=20 &
+roslaunch dmcts_world dmcts_world.launch num_agents:=$n_agents num_nodes:=$n_nodes param_number:=$param &
 pid="$pid $!"
 sleep 5s
 
-echo "launching quad_controllers 2"
-roslaunch dmcts dmcts_2.launch num_agents:=2 num_nodes:=20 &
-pid="$pid $!"
-sleep 10s
+echo "launching dmcts quad nodes"
+for ai in `seq 0 1`
+do
+    roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='greedy_completion_reward' &
+    #roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='mcts_task_by_completion_reward' &
+    #roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='mcts_task_by_completion_reward_impact_optimal' &
+    pid="$pid $!"
+    sleep 5s
+done
 
 trap "echo Killing all processes.; kill -2 TERM $pid; exit" SIGINT SIGTERM
 sleep 24h

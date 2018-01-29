@@ -49,6 +49,10 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 
 	if (this->param_file_index > 0) {
 		// load  everything from xml
+		this->rand_seed = this->param_file_index;
+		ROS_INFO("	Recieved RAND_SEED: %i", this->rand_seed);
+		ROS_INFO("	Setting RAND_SEED param");
+		ros::param::set("parameter_seed", this->rand_seed);
 		this->load_params();
 	}
 	else { // generate_params and then write them
@@ -90,8 +94,8 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 		// agent stuff
 		// set through param this->n_agents = 2; // how many agents
 		this->n_agent_types = 1; // how many types of agents
-		this->min_travel_vel = 1.9; // 5 - slowest travel speed
-		this->max_travel_vel = 1.95; // 25 - fastest travel speed
+		this->min_travel_vel = 2.3; // 5 - slowest travel speed
+		this->max_travel_vel = 2.7; // 25 - fastest travel speed
 		this->min_agent_work = 100.0; // min amount of work an agent does per second
 		this->max_agent_work = 100.0; // max amount of work an agent does per second
 
@@ -218,11 +222,16 @@ bool World::are_nbrs(const int &t1, const int &t2) {
 
 void World::write_params() {
 
-	char temp_char[200];
-	int n = sprintf(temp_char, "C:/Users/sgtas/OneDrive/Documents/GitHub/Dist_MCTS_Testing/Dist_MCTS_Testing/param_files/param_file_%i.xml", this->rand_seed);
-	//this->param_file = temp_char;
+	std::string rf;
+	rf.append(this->world_directory);
+	rf.append("param_files/");
+	char temp[200];
+	int n = sprintf(temp, "param_file_%i.xml", this->rand_seed);
+	rf.append(temp);//this->param_file = temp_char;
 	cv::FileStorage fs;
-	fs.open(temp_char, cv::FileStorage::WRITE);
+	fs.open(rf, cv::FileStorage::WRITE);
+	ROS_INFO("World::write_params: writing params");
+	std::cout << "     " << rf << std::endl;
 
 	// randomizing stuff in a controlled way
 	fs << "rand_seed" << this->rand_seed;
@@ -251,13 +260,19 @@ void World::write_params() {
 	fs << "p_active_task" << this->p_activate_task; // how likely is it that I will activate a task each second? *dt accounts per iters per second
 	fs << "min_task_time" << this->min_task_time; // shortest time to complete a task
 	fs << "max_task_time" << this->max_task_time; // longest time to complete a task
+	fs << "min_task_work" << this->min_task_work; // min work to complete a task
+	fs << "max_task_work" << this->max_task_work; // max work to complete a task
+	fs << "min_task_reward" << min_task_reward; // min reward for completing a task
+	fs << "max_task_reward" << max_task_reward; // max reward for completing a task
 
    // agent stuff
 	fs << "n_agents" << this->n_agents; // how many agents
 	fs << "n_agent_types" << this->n_agent_types; // how many types of agents
 	fs << "min_travel_vel" << this->min_travel_vel; // slowest travel speed
 	fs << "max_travel_vel" << this->max_travel_vel; // fastest travel speed
-	
+	fs << "min_agent_work" << this->min_agent_work; // min amount of work an agent does per second
+	fs << "max_agent_work" << this->max_agent_work; // max amount of work an agent does per second
+
 	fs.release();
 }
 
@@ -265,10 +280,12 @@ void World::load_params() {
 
 	std::string rf;
 	rf.append(this->world_directory);
-	rf.append("/param_files/");
+	rf.append("param_files/");
 	char temp[200];
 	int n = sprintf(temp, "param_file_%i.xml", param_file_index);
 	rf.append(temp);
+	ROS_INFO("World::load_params: loading params");
+	std::cout << "     " << rf << std::endl;
 	cv::FileStorage fs;
 	fs.open(rf, cv::FileStorage::READ);
 
@@ -297,14 +314,20 @@ void World::load_params() {
 	fs ["p_task_initially_active"] >> this->p_task_initially_active; // how likely is it that a task is initially active
 	fs ["p_impossible_task"] >> this->p_impossible_task; // how likely is it that an agent is created that cannot complete a task
 	fs ["p_active_task"] >> this->p_activate_task; // how likely is it that I will activate a task each second? *dt accounts per iters per second
-	fs ["min_task_time"] >>this->min_task_time; // shortest time to complete a task
+	fs ["min_task_time"] >> this->min_task_time; // shortest time to complete a task
 	fs ["max_task_time"] >> this->max_task_time; // longest time to complete a task
+	fs ["min_task_work"] >> this->min_task_work; // min work to complete a task
+	fs ["max_task_work"] >> this->max_task_work; // max work to complete a task
+	fs ["min_task_reward"] >> this->min_task_reward; // min reward for completing a task
+	fs ["max_task_reward"] >> this->max_task_reward; // max reward for completing a task
 
-	// agent stuff
+   // agent stuff
 	fs ["n_agents"] >> this->n_agents; // how many agents
 	fs ["n_agent_types"] >> this->n_agent_types; // how many types of agents
 	fs ["min_travel_vel"] >> this->min_travel_vel; // slowest travel speed
 	fs ["max_travel_vel"] >> this->max_travel_vel; // fastest travel speed
+	fs ["min_agent_work"] >> this->min_agent_work; // min amount of work an agent does per second
+	fs ["max_agent_work"] >> this->max_agent_work; // max amount of work an agent does per second
 	
 	fs.release();
 }
@@ -429,7 +452,10 @@ double World::get_team_probability_at_time_except(const double &time, const int 
 
 void World::display_world(const int &ms) {
 
-	if (!this->show_display || !this->initialized) {
+	if (!this->show_display){
+		return;
+	}
+	if(!this->initialized) {
 		ROS_WARN("World::display_world: Agent %i world not initialized", this->my_agent_index);
 		return;
 	}

@@ -2,6 +2,7 @@
 <launch>
 	<arg name="num_agents"/>
 	<arg name="num_nodes"/>
+	<arg name="param_number"/>
 	<node pkg="tf" type="static_transform_publisher" name="static_tf_broadcast_1" args="1 0 0 0 0 0 1 map uav1/world 100"/>
 
 	<node pkg="tf" type="static_transform_publisher" name="static_tf_broadcast_2" args="1 0 0 0 0 0 1 map uav2/world 100"/>
@@ -13,7 +14,7 @@
 	<group ns="dmcts">
 	    <node pkg="dmcts_world" name="dmcts_world" type="dmcts_world" output="screen"/>
 	    <param name="test_environment_number" value="0"/>
-	    <param name="param_number" value="0"/>
+	    <param name="param_number" value="$(arg param_number)"/>
 	    <param name="number_of_agents" value="$(arg num_agents)"/>
 	    <param name="world_directory" type="str" value="/home/andy/catkin_ws/src/dmcts_world/worlds/"/>
 	    <param name="score_run" type="bool" value="false"/>
