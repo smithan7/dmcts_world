@@ -7,6 +7,7 @@
 #include "custom_messages/Complete_Work.h"
 #include "custom_messages/Recieve_Agent_Locs.h"
 #include "custom_messages/DMCTS_Pulse.h"
+#include "gazebo_msgs/SpawnModel.h"
 #include "rosgraph_msgs/Clock.h"
 
 #include <vector>
@@ -44,6 +45,10 @@ public:
 	bool send_task_list_callback(custom_messages::Get_Task_List::Request &req, custom_messages::Get_Task_List::Response &resp);	
 	bool complete_work_callback(custom_messages::Complete_Work::Request &req, custom_messages::Complete_Work::Response &resp);
 	bool recieve_agent_locs_callback(custom_messages::Recieve_Agent_Locs::Request &req, custom_messages::Recieve_Agent_Locs::Response &resp);
+
+	ros::ServiceClient gazebo_client;
+	void spawn_gazebo_model();
+	void delete_gazebo_node_model(const int &i);
 
 	// accessing private vars
 	std::vector<Agent*> get_agents() { return this->agents; };
@@ -117,6 +122,14 @@ private:
 	std::vector<Map_Node*> nodes;
 	std::vector<Agent*> agents;
 	std::vector<bool> task_status_list;
+
+	cv::Mat Obs_Mat;
+	std::vector< std::vector<double> > obstacles;
+	void make_obs_mat();
+
+	// record keeper
+	std::vector<double> reward_captured;
+	std::vector<double> reward_time;
 	
 	// initialize everything
 	int param_file_index;

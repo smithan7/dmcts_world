@@ -12,11 +12,15 @@
 #include <random>
 #include <iostream>
 #include <fstream>
+#include <math.h>
 
 // opencv stuff
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
+
+#include <urdf/model.h>
+#include <tf/transform_listener.h>
 
 World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display_plot, const bool &score_run, const std::string &task_selection_method, const std::string &world_directory, const int &number_of_agents_in, const int &n_nodes_in ) {
 	this->initialized = false;
@@ -46,6 +50,8 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	this->locs_server = nHandle.advertiseService("/dmcts_master/recieve_agent_locs", &World::recieve_agent_locs_callback, this);
 	this->work_server = nHandle.advertiseService("/dmcts_master/complete_work", &World::complete_work_callback, this);
 
+	// initialize gazebo service client
+	this->gazebo_client = nHandle.serviceClient<gazebo_msgs::SpawnModel>("gazebo_msgs/SpawnModel");
 
 	if (this->param_file_index > 0) {
 		// load  everything from xml
@@ -99,6 +105,12 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 		this->min_agent_work = 100.0; // min amount of work an agent does per second
 		this->max_agent_work = 100.0; // max amount of work an agent does per second
 
+		// reset randomization
+		srand(this->rand_seed);
+
+		// seed the obstacle mat
+		this->make_obs_mat();
+		
 		// write params
 		this->write_params();
 	}
@@ -127,6 +139,93 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	// initialize agents
 	this->initialize_agents(nHandle);
 	this->initialized = true;
+
+	this->spawn_gazebo_model();
+}
+
+void World::spawn_gazebo_model(){
+	for(size_t i=0; i<this->obstacles.size(); i++){
+		char stuff[200];
+		int rr = floor(this->obstacles[i][2]);
+
+		int n = sprintf(stuff, "rosrun gazebo_ros spawn_model -file /home/andy/catkin_ws/src/dmcts_world/urdf_models/cylinder_%i.urdf -urdf -model cyl_%i -y %0.2f -x %0.2f",rr, int(i), this->obstacles[i][1] - this->map_width/2, this->obstacles[i][0] - this->map_height/2);
+		system(stuff);
+		//system("rosrun gazebo_ros spawn_model -file /home/andy/catkin_ws/src/dmcts_world/urdf_models/cylinder_1.urdf -urdf -model cyl -y 2.2 -x -0.3");
+	}
+	for(size_t i=0; i<this->nodes.size(); i++){
+		char stuff[200];
+		int n = sprintf(stuff, "rosrun gazebo_ros spawn_model -file /home/andy/catkin_ws/src/dmcts_world/urdf_models/box.urdf -urdf -model box_%i -y %0.2f -x %0.2f", int(i), this->nodes[i]->get_y(), this->nodes[i]->get_x());
+		system(stuff);
+		//system("rosrun gazebo_ros spawn_model -file /home/andy/catkin_ws/src/dmcts_world/urdf_models/cylinder_1.urdf -urdf -model cyl -y 2.2 -x -0.3");
+	}		
+}
+
+void World::delete_gazebo_node_model(const int &i){
+		char stuff[200];
+		int n = sprintf(stuff, "rosservice call gazebo/delete_model '{model_name: box_%i}", int(i));
+		system(stuff);
+		//rosservice call gazebo/delete_model '{model_name: coffee_cup}'
+}
+
+void World::make_obs_mat(){
+	std::vector<cv::Point2d> starting_locs;
+	starting_locs.push_back(cv::Point2d(25,25));
+	starting_locs.push_back(cv::Point2d(75,75));
+	starting_locs.push_back(cv::Point2d(25,75));
+	starting_locs.push_back(cv::Point2d(75,25));
+	starting_locs.push_back(cv::Point2d(50,75));
+	starting_locs.push_back(cv::Point2d(75,50));
+	starting_locs.push_back(cv::Point2d(50,25));
+	starting_locs.push_back(cv::Point2d(25,50));
+
+	this->Obs_Mat = cv::Mat::zeros(this->map_width, this->map_height, CV_8UC1);
+	this->obstacles.clear();
+	ROS_INFO("DMCTS_World::World::make_obs_mat: making obstacles");
+	while(this->obstacles.size() < 10){
+		//ROS_INFO("making obstacle");
+		// create a potnetial obstacle
+		double rr = rand_double_in_range(1,10);
+		double xx = rand_double_in_range(0,this->map_width);
+		double yy = rand_double_in_range(0,this->map_height);
+		//ROS_INFO("obs: %.1f, %.1f, r =  %.1f", xx, yy, rr);
+		// check if any starting locations are in an obstacle
+		bool flag = true;
+		for(size_t s=0; s<starting_locs.size(); s++){
+			double d = sqrt(pow(xx-starting_locs[s].x,2) + pow(yy-starting_locs[s].y,2));
+			//ROS_INFO("starting_locs: %.1f, %.1f, d = %.1f", starting_locs[s].x, starting_locs[s].y, d);
+			if(rr+2 >= d ){
+				// starting loc is in obstacle
+				flag = false;
+				break;
+			}
+		}
+
+		if(flag){
+			for(size_t s=0; s<this->obstacles.size(); s++){
+				double d = sqrt(pow(xx-this->obstacles[s][0],2) + pow(yy-this->obstacles[s][1],2));
+				//ROS_INFO("starting_locs: %.1f, %.1f, d = %.1f", starting_locs[s].x, starting_locs[s].y, d);
+				if(rr+1 >= d || this->obstacles[s][2]+1 >= d){
+					// obstacle is in obstacle
+					flag = false;
+					break;
+				}
+			}			
+		}
+		if(flag){
+			std::vector<double> temp = {xx,yy,rr};
+			this->obstacles.push_back(temp);
+		}
+	}
+
+	for(int j=4; j>0; j--){
+		for(size_t i=0; i<this->obstacles.size(); i++){
+			cv::circle(this->Obs_Mat, cv::Point(this->obstacles[i][0], this->obstacles[i][1]), this->obstacles[i][2]+j, cv::Scalar(255 - 25*j), -1);	
+		}
+	}
+
+	//cv::namedWindow("DMCTS_World::World::make_obs_mat:Obstacles", cv::WINDOW_NORMAL);
+	//cv::imshow("DMCTS_World::World::make_obs_mat:Obstacles", this->Obs_Mat);
+	//cv::waitKey(0);
 }
 
 void World::clock_callback(const rosgraph_msgs::Clock &tmIn){
@@ -156,13 +255,15 @@ bool World::complete_work_callback(custom_messages::Complete_Work::Request &req,
 	try{
 		if( this->nodes[req.n_index] && this->nodes[req.n_index]->is_active()){
 			this->nodes[req.n_index]->get_worked_on(req.xLoc, req.yLoc, req.a_type, req.work_rate, req.c_time, resp.work_done, resp.reward_collected);
+			this->reward_captured.push_back(resp.reward_collected);
+			this->reward_time.push_back(req.c_time);
 		}
 		else{
 			if(this->nodes[req.n_index]){
-				ROS_WARN("World::complete_work_callback: node[%i] is not valid");
+				ROS_WARN("World::complete_work_callback: node[%i] is not valid", req.n_index);
 			}
 			else if(this->nodes[req.n_index]->is_active()){
-				ROS_WARN("World::complete_work_callback: node[%i] is not active");	
+				ROS_WARN("World::complete_work_callback: node[%i] is not active", req.n_index);	
 			}
 			resp.work_done = 0.0;
 			resp.reward_collected = 0.0;
@@ -330,6 +431,8 @@ void World::load_params() {
 	fs ["max_agent_work"] >> this->max_agent_work; // max amount of work an agent does per second
 	
 	fs.release();
+
+
 }
 
 void World::generate_tasks() {
@@ -476,6 +579,12 @@ void World::display_world(const int &ms) {
 
 	if (this->PRM_Mat.empty()) {
 		this->PRM_Mat = cv::Mat::zeros(int(des_x), int(des_y), CV_8UC3);
+		// draw obstacles
+		for(size_t i=0; i<this->obstacles.size(); i++){
+			cv::Point2d pp = cv::Point2d(this->obstacles[i][0]*scale_x, this->obstacles[i][1]*scale_y);
+			cv::circle(this->PRM_Mat, pp, this->obstacles[i][2]*scale_x, cv::Scalar(127, 127, 127), -1);
+		}
+
 		// draw PRM connections
 		for (int i = 0; i < this->n_nodes; i++) {
 			int index = -1;
@@ -707,15 +816,29 @@ void World::initialize_PRM() {
 					}
 				}
 			}
-			double obs_cost = min_dist;
-			if (this->rand_double_in_range(0.0, 1.0) < this->p_obstacle_on_edge) { // does travel type two pay obstacle cost?
-				if (this->rand_double_in_range(0.0, 1.0) < this->p_blocked_edge) { // does travel type two get blocked from using edge
-					obs_cost = double(INFINITY);
-				}
-				else { // pay obstacle costs
-					obs_cost = min_dist*(1 + this->rand_double_in_range(0.0, 1.0));
-				}
+
+			//cv::namedWindow("obstacles", cv::WINDOW_NORMAL);
+			//cv::imshow("obstacles", this->Obs_Mat);
+			//cv::waitKey(100);
+
+			// get node[i]'s location on the img
+			cv::Point me = this->nodes[i]->get_loc();
+			me.x += this->map_width/2;
+			me.y += this->map_height/2;
+			// get their location
+			cv::Point np = this->nodes[mindex]->get_loc();
+			np.x += this->map_width/2;
+			np.y += this->map_height/2;
+			// get a line iterator from me to them
+			cv::LineIterator lit(this->Obs_Mat, me, np);
+			double val_sum = 0.0;
+			// count every obstacles cell between me and them!
+			for (int i = 0; i < lit.count; i++, ++lit) {
+				// count along line
+				val_sum += double(this->Obs_Mat.at<uchar>(lit.pos()))/255.0;
 			}
+			double mean_val = val_sum / double(lit.count);
+			double obs_cost = min_dist*(1+mean_val);
 			this->nodes[i]->add_nbr(mindex, min_dist, obs_cost);
 			this->nodes[mindex]->add_nbr(i, min_dist, obs_cost);
 		}
@@ -808,9 +931,18 @@ void World::initialize_nodes_and_tasks() {
 		}
 		task_work_by_agent.push_back(at);
 	}
+
+	double x,y;
 	for (int i = 0; i < this->n_nodes; i++) {
-		double x = this->rand_double_in_range(-this->map_width/2, this->map_width/2);
-		double y = this->rand_double_in_range(-this->map_height/2, this->map_height/2);
+		bool flag = true;
+
+		while(flag){
+			x = this->rand_double_in_range(-this->map_width/2, this->map_width/2);
+			y = this->rand_double_in_range(-this->map_height/2, this->map_height/2);
+			if(this->Obs_Mat.at<uchar>(cv::Point(x + this->map_width/2,y+this->map_height/2)) == 0){
+				flag = false;
+			}
+		}
 		int task_type = rand() % n_task_types;
 		Map_Node* n = new Map_Node(x, y, i, this->p_task_initially_active, task_type, task_work_by_agent[task_type], task_colors[task_type], this->flat_tasks, this);
 		this->nodes.push_back(n);
@@ -827,6 +959,23 @@ World::~World(){
 		delete this->agents[i];
 	}
 	this->agents.clear();
+
+	std::string rf;
+	rf.append(this->world_directory);
+	rf.append("result_files/");
+	char temp[200];
+	int n = sprintf(temp, "param_file_%i.xml", this->rand_seed);
+	rf.append(temp);//this->param_file = temp_char;
+	cv::FileStorage fs;
+	fs.open(rf, cv::FileStorage::WRITE);
+	ROS_INFO("World::~World: writing results");
+	std::cout << "     " << rf << std::endl;
+
+	// randomizing stuff in a controlled way
+	fs << "reward" << this->reward_captured;
+	fs << "time" << this->reward_time;
+
+
 }
 
 bool World::a_star(const int &start, const int &goal, const bool &pay_obstacle_cost, std::vector<int> &path, double &length) {
