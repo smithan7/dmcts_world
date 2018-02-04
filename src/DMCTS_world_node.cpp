@@ -17,6 +17,7 @@ int main(int argc, char *argv[]){
 	bool display_map = true;
 	bool score_run = false;
 	int n_nodes = 1;
+	bool uga = false;
 
 	std::string task_selection_method;
 	task_selection_method.append("greedy_completion_reward");
@@ -29,6 +30,7 @@ int main(int argc, char *argv[]){
 	ros::param::get("score_run", score_run);
 	ros::param::get("display_map", display_map);
 	ros::param::get("number_of_nodes", n_nodes);
+	ros::param::get("use_gazebo_obstacles", uga);
 
 
 	ROS_INFO("World::initializing world");
@@ -39,8 +41,9 @@ int main(int argc, char *argv[]){
 	ROS_INFO("   score_run %i", score_run);
 	ROS_INFO("   display_map %i", display_map);
 	ROS_INFO("   n_nodes %i", n_nodes);
+	ROS_INFO("   use_gazebo_obstacles %i", uga);
 	
-	World world = World(nHandle, params, display_map, score_run, task_selection_method, world_directory, number_of_agents, n_nodes);
+	World world = World(nHandle, params, display_map, score_run, task_selection_method, world_directory, number_of_agents, n_nodes, uga);
 	ROS_INFO("World::world initialized");
 	// return the control to ROS
 	ros::spin();

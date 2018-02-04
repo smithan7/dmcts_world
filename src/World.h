@@ -23,7 +23,7 @@ class Task;
 class World
 {
 public:
-	World(ros::NodeHandle nHandle, const int &param_file, const bool &display_plot, const bool &score_run, const std::string &task_selection_method, const std::string &world_directory, const int &number_of_agents, const int &n_nodes_in);
+	World(ros::NodeHandle nHandle, const int &param_file, const bool &display_plot, const bool &score_run, const std::string &task_selection_method, const std::string &world_directory, const int &number_of_agents, const int &n_nodes_in, const bool &use_gazebo_obstacles);
 	// doing everything
 	//void iterate_all();
 	double get_team_probability_at_time_except(const double & time, const int & task, const int & except_agent);
@@ -46,7 +46,6 @@ public:
 	bool complete_work_callback(custom_messages::Complete_Work::Request &req, custom_messages::Complete_Work::Response &resp);
 	bool recieve_agent_locs_callback(custom_messages::Recieve_Agent_Locs::Request &req, custom_messages::Recieve_Agent_Locs::Response &resp);
 
-	ros::ServiceClient gazebo_client;
 	void spawn_gazebo_model();
 	void delete_gazebo_node_model(const int &i);
 

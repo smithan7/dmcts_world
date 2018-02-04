@@ -22,7 +22,7 @@
 #include <urdf/model.h>
 #include <tf/transform_listener.h>
 
-World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display_plot, const bool &score_run, const std::string &task_selection_method, const std::string &world_directory, const int &number_of_agents_in, const int &n_nodes_in ) {
+World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display_plot, const bool &score_run, const std::string &task_selection_method, const std::string &world_directory, const int &number_of_agents_in, const int &n_nodes_in, const bool &use_gazebo_obstacles ) {
 	this->initialized = false;
 	this->show_display = display_plot;
 	this->score_run = score_run;
@@ -49,9 +49,6 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	this->task_list_server = nHandle.advertiseService("/dmcts_master/get_task_list", &World::send_task_list_callback, this);
 	this->locs_server = nHandle.advertiseService("/dmcts_master/recieve_agent_locs", &World::recieve_agent_locs_callback, this);
 	this->work_server = nHandle.advertiseService("/dmcts_master/complete_work", &World::complete_work_callback, this);
-
-	// initialize gazebo service client
-	this->gazebo_client = nHandle.serviceClient<gazebo_msgs::SpawnModel>("gazebo_msgs/SpawnModel");
 
 	if (this->param_file_index > 0) {
 		// load  everything from xml
@@ -140,7 +137,9 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	this->initialize_agents(nHandle);
 	this->initialized = true;
 
-	this->spawn_gazebo_model();
+	if(use_gazebo_obstacles){
+		this->spawn_gazebo_model();
+	}
 }
 
 void World::spawn_gazebo_model(){
@@ -257,6 +256,23 @@ bool World::complete_work_callback(custom_messages::Complete_Work::Request &req,
 			this->nodes[req.n_index]->get_worked_on(req.xLoc, req.yLoc, req.a_type, req.work_rate, req.c_time, resp.work_done, resp.reward_collected);
 			this->reward_captured.push_back(resp.reward_collected);
 			this->reward_time.push_back(req.c_time);
+
+			if(this->score_run){
+				std::string rf;
+				rf.append(this->world_directory);
+				rf.append("results/");
+				char temp[200];
+				int n = sprintf(temp, "results_for_param_file_%i.xml", this->rand_seed);
+				rf.append(temp);//this->param_file = temp_char;
+				cv::FileStorage fs;
+				fs.open(rf, cv::FileStorage::WRITE);
+				//ROS_INFO("World::~World: writing results");
+				//std::cout << "     " << rf << std::endl;
+				// randomizing stuff in a controlled way
+				fs << "task_selection_method" << this->agents->task_selection_method;
+				fs << "reward" << this->reward_captured;
+				fs << "time" << this->reward_time;
+			}
 		}
 		else{
 			if(this->nodes[req.n_index]){
@@ -959,23 +975,6 @@ World::~World(){
 		delete this->agents[i];
 	}
 	this->agents.clear();
-
-	std::string rf;
-	rf.append(this->world_directory);
-	rf.append("result_files/");
-	char temp[200];
-	int n = sprintf(temp, "param_file_%i.xml", this->rand_seed);
-	rf.append(temp);//this->param_file = temp_char;
-	cv::FileStorage fs;
-	fs.open(rf, cv::FileStorage::WRITE);
-	ROS_INFO("World::~World: writing results");
-	std::cout << "     " << rf << std::endl;
-
-	// randomizing stuff in a controlled way
-	fs << "reward" << this->reward_captured;
-	fs << "time" << this->reward_time;
-
-
 }
 
 bool World::a_star(const int &start, const int &goal, const bool &pay_obstacle_cost, std::vector<int> &path, double &length) {
