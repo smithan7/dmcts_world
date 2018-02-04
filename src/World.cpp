@@ -269,7 +269,7 @@ bool World::complete_work_callback(custom_messages::Complete_Work::Request &req,
 				//ROS_INFO("World::~World: writing results");
 				//std::cout << "     " << rf << std::endl;
 				// randomizing stuff in a controlled way
-				fs << "task_selection_method" << this->agents->task_selection_method;
+				fs << "task_selection_method" << this->agents[0]->get_task_selection_method();
 				fs << "reward" << this->reward_captured;
 				fs << "time" << this->reward_time;
 			}
@@ -338,6 +338,10 @@ bool World::are_nbrs(const int &t1, const int &t2) {
 }
 
 void World::write_params() {
+
+	if(!this->score_run){
+		return;
+	}
 
 	std::string rf;
 	rf.append(this->world_directory);

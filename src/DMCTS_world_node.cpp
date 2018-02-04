@@ -30,7 +30,7 @@ int main(int argc, char *argv[]){
 	ros::param::get("score_run", score_run);
 	ros::param::get("display_map", display_map);
 	ros::param::get("number_of_nodes", n_nodes);
-	ros::param::get("use_gazebo_obstacles", uga);
+	ros::param::get("use_gazebo_obstacles", uga);	
 
 
 	ROS_INFO("World::initializing world");
