@@ -4,6 +4,8 @@ n_agents=$1
 n_nodes=$2
 param=$3
 coord_method=$4
+score_run=true
+gazebo_obstacles=false
  
 my_pid=$$
 echo "My process ID is $my_pid"
@@ -28,6 +30,8 @@ sleep 5s
 
 declare -a xs=(-25 25 -25 25 25 0 0 -25);
 declare -a ys=(-25 25 25 -25 0 25 -25 0);
+declare -a zs=(5 7.5 10 12.5 15 17.5 20 22.5);
+
 echo "launching hector quadrotors"
 for ((ai=0; ai<n_agents; ai++))
 do
@@ -42,14 +46,14 @@ done
 #sleep 10s
 
 echo "launching dmcts_world_node"
-roslaunch dmcts_world dmcts_world.launch num_agents:=$n_agents num_nodes:=$n_nodes param_number:=$param coord_method:=$coord_method  score_run:=false gazebo_obstacles:=true &
+roslaunch dmcts_world dmcts_world.launch num_agents:=$n_agents num_nodes:=$n_nodes param_number:=$param coord_method:=$coord_method  score_run:=$score_run gazebo_obstacles:=$gazebo_obstacles &
 pid="$pid $!"
 sleep 5s
 
 echo "launching dmcts quad nodes"
 for ((ai=0; ai<n_agents; ai++))
 do
-    roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:=$coord_method & 
+    roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:=$coord_method  desired_altitude:=${zs[ai]} & 
     #roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='greedy_completion_reward' &
     #roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='mcts_task_by_completion_reward' &
     #roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='mcts_task_by_completion_reward_impact_optimal' &

@@ -24,6 +24,7 @@
 
 World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display_plot, const bool &score_run, const std::string &task_selection_method, const std::string &world_directory, const int &number_of_agents_in, const int &n_nodes_in, const bool &use_gazebo_obstacles ) {
 	this->initialized = false;
+	this->initialized_clock = false;
 	this->show_display = display_plot;
 	this->score_run = score_run;
 	this->param_file_index = param_file;
@@ -35,6 +36,7 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	this->world_directory = world_directory;
 	this->n_agents = number_of_agents_in;
 	this->flat_tasks = true;
+	this->start_time = -1.0;
 
 	this->clock_sub = nHandle.subscribe("/clock", 1, &World::clock_callback, this);
 	this->pulse_pub = nHandle.advertise<custom_messages::DMCTS_Pulse>("/dmcts_master/pulse", 10);
@@ -56,7 +58,7 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 		ROS_INFO("	Recieved RAND_SEED: %i", this->rand_seed);
 		ROS_INFO("	Setting RAND_SEED param");
 		ros::param::set("parameter_seed", this->rand_seed);
-		this->load_params();
+		//this->load_params();
 	}
 	else { // generate_params and then write them
 		// seed the randomness in the simulator
@@ -65,52 +67,51 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 		ROS_INFO("	GENERATED RAND_SEED: %i", this->rand_seed);
 		ROS_INFO("	Setting RAND_SEED param");
 		ros::param::set("parameter_seed", this->rand_seed);
-
-		// time stuff
-		this->c_time = 0.0;
-		this->dt = 1.0;
-		this->end_time = 10000.0;
-
-		// map and PRM stuff
-		this->map_height = 100.0; 
-		this->map_width = 100.0; // 1000
-		this->n_nodes = n_nodes_in; 
-		this->k_map_connections = 5;
-		this->k_connection_radius = 500.0;
-		this->p_connect = 1.0;
-		this->p_blocked_edge = 0.05;
-		this->p_obstacle_on_edge = 0.2;
-		this->p_pay_obstacle_cost = 0.0;
-		
-		// task stuff
-		this->n_task_types = 4; // how many types of tasks are there
-		this->p_task_initially_active = 0.625; // how likely is it that a task is initially active, 3-0.25, 5-0.5, 7-0.75
-		this->p_impossible_task = 0.0; // how likely is it that an agent is created that cannot complete a task
-		this->p_activate_task = 0.0;// 1.0*this->dt; // how likely is it that I will activate a task each second? *dt accounts per iters per second
-		this->min_task_time = 1000.0; // shortest time to complete a task
-		this->max_task_time = 6000.0; // longest time to complete a task
-		this->min_task_work = 1.0; // min work to complete a task
-		this->max_task_work = 1.0; // max work to complete a task
-		this->min_task_reward = 100.0; // min reward for completing a task
-		this->max_task_reward = 500.0; // max reward for completing a task
-
-		// agent stuff
-		// set through param this->n_agents = 2; // how many agents
-		this->n_agent_types = 1; // how many types of agents
-		this->min_travel_vel = 2.3; // 5 - slowest travel speed
-		this->max_travel_vel = 2.7; // 25 - fastest travel speed
-		this->min_agent_work = 100.0; // min amount of work an agent does per second
-		this->max_agent_work = 100.0; // max amount of work an agent does per second
-
-		// reset randomization
-		srand(this->rand_seed);
-
-		// seed the obstacle mat
-		this->make_obs_mat();
-		
-		// write params
-		this->write_params();
 	}
+	// time stuff
+	this->c_time = 0.0;
+	this->dt = 1.0;
+	this->end_time = 10000.0;
+
+	// map and PRM stuff
+	this->map_height = 100.0; 
+	this->map_width = 100.0; // 1000
+	this->n_nodes = n_nodes_in; 
+	this->k_map_connections = 5;
+	this->k_connection_radius = 500.0;
+	this->p_connect = 1.0;
+	this->p_blocked_edge = 0.05;
+	this->p_obstacle_on_edge = 0.2;
+	this->p_pay_obstacle_cost = 0.0;
+	
+	// task stuff
+	this->n_task_types = 4; // how many types of tasks are there
+	this->p_task_initially_active = 0.625; // how likely is it that a task is initially active, 3-0.25, 5-0.5, 7-0.75
+	this->p_impossible_task = 0.0; // how likely is it that an agent is created that cannot complete a task
+	this->p_activate_task = 0.0;// 1.0*this->dt; // how likely is it that I will activate a task each second? *dt accounts per iters per second
+	this->min_task_time = 1000.0; // shortest time to complete a task
+	this->max_task_time = 6000.0; // longest time to complete a task
+	this->min_task_work = 1.0; // min work to complete a task
+	this->max_task_work = 1.0; // max work to complete a task
+	this->min_task_reward = 100.0; // min reward for completing a task
+	this->max_task_reward = 500.0; // max reward for completing a task
+
+	// agent stuff
+	// set through param this->n_agents = 2; // how many agents
+	this->n_agent_types = 1; // how many types of agents
+	this->min_travel_vel = 2.3; // 5 - slowest travel speed
+	this->max_travel_vel = 2.7; // 25 - fastest travel speed
+	this->min_agent_work = 100.0; // min amount of work an agent does per second
+	this->max_agent_work = 100.0; // max amount of work an agent does per second
+
+	// reset randomization
+	srand(this->rand_seed);
+
+	// seed the obstacle mat
+	this->make_obs_mat();
+	
+	// write params
+	this->write_params();
 
 	if (this->task_selection_method == "mcts_task_by_completion_reward_impact_before_and_after") {
 		this->impact_style = "before_and_after";
@@ -228,7 +229,15 @@ void World::make_obs_mat(){
 }
 
 void World::clock_callback(const rosgraph_msgs::Clock &tmIn){
-	this->c_time =tmIn.clock.now().toSec();
+	if(this->initialized_clock){
+		this->c_time = tmIn.clock.now().toSec() - this->start_time;
+		if(this->start_time < 0){
+			this->start_time = tmIn.clock.now().toSec();
+		}
+	}
+	else{
+		this->c_time = 0.0;
+	}
 }
 
 bool World::send_task_list_callback(custom_messages::Get_Task_List::Request &req, custom_messages::Get_Task_List::Response &resp){
@@ -262,7 +271,7 @@ bool World::complete_work_callback(custom_messages::Complete_Work::Request &req,
 				rf.append(this->world_directory);
 				rf.append("results/");
 				char temp[200];
-				int n = sprintf(temp, "results_for_param_file_%i.xml", this->rand_seed);
+				int n = sprintf(temp, "results_for_param_file_%i_%s.xml", this->rand_seed, this->agents[0]->get_task_selection_method().c_str());
 				rf.append(temp);//this->param_file = temp_char;
 				cv::FileStorage fs;
 				fs.open(rf, cv::FileStorage::WRITE);
@@ -296,7 +305,23 @@ bool World::recieve_agent_locs_callback(custom_messages::Recieve_Agent_Locs::Req
 	try {
 		this->agents[req.index]->update_pose(req.xLoc, req.yLoc, req.alt, req.yaw);
 		this->agents[req.index]->update_edge(req.edge_x, req.edge_y);
-		resp.f = true;
+		this->agent_status[req.index] = req.status;
+		//ROS_WARN("recieved locs: req.status[%i]: %i", req.index, int(req.status));
+		
+		// check if everyone should start
+		bool flag = true;
+		for(size_t i=0; i<this->agent_status.size(); i++){
+			if(this->agent_status[i] == -1){
+				flag = false;
+				break;
+			}
+		}
+		if(!this->initialized_clock && flag){
+			this->start_time = -1;
+			this->initialized_clock = true;
+		}
+
+		resp.f = flag;
 	}
 	catch(...){
 		ROS_ERROR("World::odom recieved but could not be updated[%i]: %.2f, %.2f", req.index, req.xLoc, req.yLoc);
@@ -773,7 +798,9 @@ void World::initialize_agents(ros::NodeHandle nHandle) {
 			agent_colors.push_back(color);
 		}
 	}
+	this->agent_status.clear();
 	for (int i = 0; i < this->n_agents; i++) {
+		this->agent_status.push_back(-1);
 		int tp = agent_types[i];
 		Agent* a = new Agent(nHandle, i, tp, agent_travel_vels[tp], agent_colors[tp], agent_obstacle_costs[tp], agent_work_radii[tp], this);
 		this->agents.push_back(a);

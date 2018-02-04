@@ -36,6 +36,8 @@ public:
 	void clock_callback(const rosgraph_msgs::Clock &tmIn);
 	ros::Timer plot_timer, pulse_timer;
 	ros::Duration plot_duration, pulse_duration;
+	double start_time;
+	bool initialized_clock;
 	void plot_timer_callback(const ros::TimerEvent &e);
 	void pulse_timer_callback(const ros::TimerEvent &e);
 	void activate_task(const int &ti); // call from agent to activate task
@@ -97,6 +99,7 @@ private:
 	std::vector<double> max_task_works, min_task_works;
 	
 	int my_agent_index;
+	std::vector<int> agent_status;
 	double c_time, dt, end_time;
 	std::string mcts_search_type, mcts_reward_type, impact_style;
 	int mcts_n_kids;
