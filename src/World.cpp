@@ -304,7 +304,7 @@ bool World::recieve_agent_locs_callback(custom_messages::Recieve_Agent_Locs::Req
 	try {
 		this->agents[req.index]->update_pose(req.xLoc, req.yLoc, req.alt, req.yaw);
 		this->agents[req.index]->update_edge(req.edge_x, req.edge_y);
-		this->agent_status[req.index] = req.status;
+                this->agent_status[req.index] = req.status;
 		//ROS_WARN("recieved locs: req.status[%i]: %i", req.index, int(req.status));
 		
 		// check if everyone should start
