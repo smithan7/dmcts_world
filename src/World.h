@@ -23,7 +23,7 @@ class Task;
 class World
 {
 public:
-	World(ros::NodeHandle nHandle, const int &param_file, const bool &display_plot, const bool &score_run, const std::string &task_selection_method, const std::string &world_directory, const int &number_of_agents, const int &n_nodes_in, const bool &use_gazebo_obstacles);
+	World(ros::NodeHandle nHandle, const int &param_file, const bool &display_plot, const bool &score_run, const std::string &task_selection_method, const std::string &world_directory, const int &number_of_agents, const int &n_nodes_in, const bool &use_gazebo_obstacles, const double &p_initially_active);
 	// doing everything
 	//void iterate_all();
 	double get_team_probability_at_time_except(const double & time, const int & task, const int & except_agent);
@@ -97,7 +97,8 @@ private:
 	std::vector<double> max_task_rewards, min_task_rewards;
 	std::vector<double> max_task_times, min_task_times;
 	std::vector<double> max_task_works, min_task_works;
-	
+	std::vector<cv::Point2d> starting_locs;
+		
 	int my_agent_index;
 	std::vector<int> agent_status;
 	double c_time, dt, end_time;
