@@ -7,15 +7,6 @@
 	<arg name="coord_method"/>
 	<arg name="gazebo_obstacles"/>
 	<arg name="p_task_initially_active"/>
-	
-	<node pkg="tf" type="static_transform_publisher" name="static_tf_broadcast_0" args="1 0 0 0 0 0 1 map uav0/world 100"/>
-	<node pkg="tf" type="static_transform_publisher" name="static_tf_broadcast_1" args="1 0 0 0 0 0 1 map uav1/world 100"/>
-	<node pkg="tf" type="static_transform_publisher" name="static_tf_broadcast_2" args="1 0 0 0 0 0 1 map uav2/world 100"/>
-	<node pkg="tf" type="static_transform_publisher" name="static_tf_broadcast_3" args="1 0 0 0 0 0 1 map uav3/world 100"/>
-	<node pkg="tf" type="static_transform_publisher" name="static_tf_broadcast_4" args="1 0 0 0 0 0 1 map uav4/world 100"/>
-	<node pkg="tf" type="static_transform_publisher" name="static_tf_broadcast_5" args="1 0 0 0 0 0 1 map uav5/world 100"/>
-	<node pkg="tf" type="static_transform_publisher" name="static_tf_broadcast_6" args="1 0 0 0 0 0 1 map uav6/world 100"/>
-	<node pkg="tf" type="static_transform_publisher" name="static_tf_broadcast_7" args="1 0 0 0 0 0 1 map uav7/world 100"/>
 
 	<group ns="dmcts">
 	    <node pkg="dmcts_world" name="dmcts_world" type="dmcts_world" output="screen"/>
@@ -29,5 +20,13 @@
         <param name="use_gazebo_obstacles" type="bool" value="$(arg gazebo_obstacles)"/>
         <param name="coord_method" type="str" value="$(arg coord_method)"/>
         <param name="p_task_initially_active" type="double" value="$(arg p_task_initially_active)"/>
+        
+        <node pkg="xbee_bridge" name="xbee" type="xbee_bridge.py" output="screen"/>
+        <param name="com_port" value="/dev/ttyUSB1"/>
+        <param name="baud_rate" value="9600"/>
+        <param name="com_type" value="ground_station"/>
+        <param name="fake_agent" value="false"/>
+        <param name="agent_index" value="-1"/>
+        
 	</group>
 </launch>

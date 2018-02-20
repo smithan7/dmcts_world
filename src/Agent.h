@@ -16,8 +16,6 @@
 
 
 class World;
-class Agent_Planning;
-class Agent_Coordinator;
 class Goal;
 class Pose;
 
@@ -42,10 +40,7 @@ public:
 	int get_loc() { return this->edge.x; };
 
 	Goal* get_goal() { return this->goal_node; };
-	Agent_Coordinator* get_coordinator() { return this->coordinator; };
-	Agent_Planning* get_planner() { return this->planner; };
 	World* get_world() { return this->world; };
-	double get_arrival_time() { return this->arrival_time; }
 	
 	int get_type() { return this->type; };
 	double get_travel_vel() { return this->travel_vel; };
@@ -55,9 +50,6 @@ public:
 	bool get_at_node() { return this->at_node(); };
 	cv::Scalar get_color() { return this->color; };
 	cv::Point2i get_edge() { return this->edge; };
-	std::string get_task_selection_method() { return this->task_selection_method; };
-	std::string get_task_claim_method() { return this->task_claim_method; };
-	std::string get_task_claim_time() { return this->task_claim_time; };
 
 	double get_work_done() { return this->work_done; };
 	double get_travel_done() { return this->travel_done; };
@@ -74,16 +66,8 @@ private:
 
 	// planning and coordinator
 	Goal* goal_node;
-	Agent_Planning* planner;
-	Agent_Coordinator* coordinator;
 	World* world;
 
-	std::string task_selection_method; // how do I select tasks
-	std::string task_claim_method; // how / when do I claim tasks
-	std::string task_claim_time; // when do I claim my task
-	
-	double arrival_time; // for travel and arrival plan
-	double expected_value;
 	double work_radius; // how close can I be and still do work?
 
 	double work_done; // accumulated reward
@@ -107,9 +91,5 @@ private:
 	
 	// working and planning
 	void work_on_task(); // work on the task I am at
-	
-	// moving and path planning 
-	void move_along_edge(); // move along the current edge
-	void select_next_edge(); // have a goal, select next edge to get to goal
 };
 

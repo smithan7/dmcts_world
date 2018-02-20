@@ -60,24 +60,15 @@ void Map_Node::update_task(World* world) {
 	}
 }
 
-bool Map_Node::get_worked_on(const double &x, const double &y, const int &agent_type, const double &work_rate, const double &c_time, double &agent_work, double &reward_collected){
-	double dist = sqrt( pow(this->x - x, 2) + pow(this->y - y, 2));
-	if(dist <= this->work_radius){
-		agent_work = this->agent_work[agent_type] * work_rate;
-		this->remaining_work -= this->agent_work[agent_type] * work_rate;
-		if (this->remaining_work <= 0.0) {
-			reward_collected = this->get_reward_at_time(c_time);
-			this->deactivate();
-		}
-		else{
-			reward_collected = 0.0;
-		}
-		return true;
+void Map_Node::get_worked_on(const int &agent_type, const double &c_time, double &agent_work, double &reward_collected){
+	agent_work = this->agent_work[agent_type];
+	this->remaining_work -= this->agent_work[agent_type];
+	if (this->remaining_work <= 0.0) {
+		reward_collected = this->get_reward_at_time(c_time);
+		this->deactivate();
 	}
 	else{
-		agent_work = 0.0;
 		reward_collected = 0.0;
-		return false;
 	}
 }
 

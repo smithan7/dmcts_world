@@ -2,11 +2,7 @@
 
 #include "Map_Node.h"
 #include "Agent.h"
-#include "Proabability_Node.h"
-#include "Agent_Coordinator.h"
-#include "Agent_Planning.h"
 #include "Goal.h"
-#include "Sorted_List.h"
 #include "Pose.h"
 
 #include <random>
@@ -39,19 +35,26 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	this->start_time = -1.0;
 	this->p_task_initially_active = p_initially_active; // how likely is it that a task is initially active, 3-0.25, 5-0.5, 7-0.75
 
-	this->clock_sub = nHandle.subscribe("/clock", 1, &World::clock_callback, this);
-	this->pulse_pub = nHandle.advertise<custom_messages::DMCTS_Pulse>("/dmcts_master/pulse", 10);
 	// how often do I plot
 	this->plot_duration = ros::Duration(1.0); 
 	this->plot_timer = nHandle.createTimer(this->plot_duration, &World::plot_timer_callback, this);
+	
 	// how often do I just say that I am ok
 	this->pulse_duration = ros::Duration(1.0);
 	this->pulse_timer = nHandle.createTimer(this->pulse_duration, &World::pulse_timer_callback, this);
 
-	// initialize world services
-	this->task_list_server = nHandle.advertiseService("/dmcts_master/get_task_list", &World::send_task_list_callback, this);
-	this->locs_server = nHandle.advertiseService("/dmcts_master/recieve_agent_locs", &World::recieve_agent_locs_callback, this);
-	this->work_server = nHandle.advertiseService("/dmcts_master/complete_work", &World::complete_work_callback, this);
+    // Internal Subscriber    
+    this->clock_sub = nHandle.subscribe("/clock", 1, &World::clock_callback, this);
+	
+	// Subscribe to Agents
+	this->request_task_list_sub = nHandle.subscribe("/dmcts_master/request_task_list", 10, &World::request_task_list_callback, this);
+	this->loc_sub = nHandle.subscribe("/dmcts_master/loc", 10, &World::loc_callback, this);
+	this->request_work_sub = nHandle.subscribe("/dmcts_master/request_work", 10, &World::request_work_callback, this);
+	
+	// Publishers to agents
+	this->pulse_pub = nHandle.advertise<custom_messages::DMCTS_Pulse>("/dmcts_master/pulse", 10);
+	this->task_list_pub = nHandle.advertise<custom_messages::DMCTS_Task_List>("/dmcts_master/task_list", 10);
+	this->work_status_pub = nHandle.advertise<custom_messages::DMCTS_Work_Status>("/dmcts_master/work_status", 10);
 
 	if (this->param_file_index > 0) {
 		// load  everything from xml
@@ -239,94 +242,120 @@ void World::clock_callback(const rosgraph_msgs::Clock &tmIn){
 	}
 }
 
-bool World::send_task_list_callback(custom_messages::Get_Task_List::Request &req, custom_messages::Get_Task_List::Response &resp){
-	//ROS_ERROR("World::send_task_list_callback: recieved");
+void World::request_task_list_callback(const custom_messages::DMCTS_Request_Task_List &msg){
+	//ROS_ERROR("World::task_list_callback: recieved");
+	
+	custom_messages::DMCTS_Task_List bcst = custom_messages::DMCTS_Task_List();
 	for(size_t i=0; i<this->nodes.size(); i++){
 		if(this->nodes[i]->is_active()){
-			resp.node_indices.push_back(i);
-			resp.xLoc.push_back(this->nodes[i]->get_x());
-			resp.yLoc.push_back(this->nodes[i]->get_y());
-			resp.reward.push_back(100.0);
+			bcst.node_indices.push_back(i);
 		}
 	}
-	//ROS_ERROR("World::send_task_list_callback: assembled");
-	//ROS_ERROR("World::send_task_list_callback: %i", int(resp.node_indices.size()));
-	//ROS_ERROR("World::send_task_list_callback: %i", int(resp.xLoc.size()));
-	//ROS_ERROR("World::send_task_list_callback: %i", int(resp.yLoc.size()));
-	//ROS_ERROR("World::send_task_list_callback: %i", int(resp.reward.size()));
 	
-	return true;
+	this->task_list_pub.publish(bcst);
+	//ROS_ERROR("World::task_list_callback: assembled");
+	//ROS_ERROR("World::task_list_callback: %i", int(resp.node_indices.size()));
+	//ROS_ERROR("World::task_list_callback: %i", int(resp.reward.size()));
 }
 
-bool World::complete_work_callback(custom_messages::Complete_Work::Request &req, custom_messages::Complete_Work::Response &resp){
+void World::request_work_callback(const custom_messages::DMCTS_Request_Work &msg){
+	double work_done = 0.0;
+	double reward_collected = 0.0;
+	int complete = 0;
+			
 	try{
-		if( this->nodes[req.n_index] && this->nodes[req.n_index]->is_active()){
-			this->nodes[req.n_index]->get_worked_on(req.xLoc, req.yLoc, req.a_type, req.work_rate, req.c_time, resp.work_done, resp.reward_collected);
-			this->reward_captured.push_back(resp.reward_collected);
-			this->reward_time.push_back(req.c_time);
+		if( this->nodes[msg.n_index] ){
+		    if( this->nodes[msg.n_index]->is_active() ){
+		        int a_type = this->agents[msg.a_index]->get_type();
+		        this->nodes[msg.n_index]->get_worked_on(a_type, this->c_time, work_done, reward_collected);
+			    this->reward_captured.push_back(reward_collected);
+			    this->reward_time.push_back(this->c_time);
 
-			if(this->score_run){
-				std::string rf;
-				rf.append(this->world_directory);
-				rf.append("results/");
-				char temp[200];
-				int n = sprintf(temp, "results_for_param_file_%i_%s.xml", this->rand_seed, this->agents[0]->get_task_selection_method().c_str());
-				rf.append(temp);//this->param_file = temp_char;
-				cv::FileStorage fs;
-				fs.open(rf, cv::FileStorage::WRITE);
-				//ROS_INFO("World::~World: writing results");
-				//std::cout << "     " << rf << std::endl;
-				// randomizing stuff in a controlled way
-				fs << "task_selection_method" << this->agents[0]->get_task_selection_method();
-				fs << "reward" << this->reward_captured;
-				fs << "time" << this->reward_time;
+                if(this->nodes[msg.n_index]->is_active()){
+                    if (work_done > 0.0){
+                        complete = 1; // Succesfully did some work, but task is still active
+                    }
+                    else{
+                        complete = -1; // Task is active and I did no work
+                    }
+                }
+                else{
+                    complete = 0; // Task is now complete
+                }        
+                
+                this->publish_work_status(msg.n_index, msg.a_index, complete);
+
+
+			    if(this->score_run){
+			        this->record_work(reward_collected, msg.a_index);
+			    }
+		    }
+		    else{
+		        ROS_WARN("World::complete_work_callback: node[%i] is not valid", msg.n_index);
+			    this->publish_work_status(msg.n_index, msg.a_index, -1);
 			}
-		}
+		}    
 		else{
-			if(this->nodes[req.n_index]){
-				ROS_WARN("World::complete_work_callback: node[%i] is not valid", req.n_index);
-			}
-			else if(this->nodes[req.n_index]->is_active()){
-				ROS_WARN("World::complete_work_callback: node[%i] is not active", req.n_index);	
-			}
-			resp.work_done = 0.0;
-			resp.reward_collected = 0.0;
+		    ROS_WARN("World::complete_work_callback: node[%i] is not active", msg.n_index);
+            this->publish_work_status(msg.n_index, msg.a_index, -1);
 		}
 	}
 	catch(...){
-		ROS_ERROR("World::complete_work_callback: node[%i] at loc (%.2f, %.2f) by agent type (%i) with rate (%.2f) failed", req.n_index, req.xLoc, req.yLoc, req.a_type, req.work_rate);
+		ROS_ERROR("World::work_request_callback: node[%i] by agent %i failed", msg.n_index, msg.a_index);
 	}
-	return true;
 }
 
-bool World::recieve_agent_locs_callback(custom_messages::Recieve_Agent_Locs::Request &req, custom_messages::Recieve_Agent_Locs::Response &resp){
-	//ROS_ERROR("World::odom recieved[%i]: %.2f, %.2f", req.index, req.xLoc, req.yLoc);
+void World::publish_work_status(const int &n_index, const int &a_index, const int &node_status){
+    custom_messages::DMCTS_Work_Status msg;
+    msg.n_index = n_index;
+    msg.a_index = a_index;
+    msg.success = node_status;
+    this->work_status_pub.publish(msg);
+}
+
+void World::record_work(const double &reward_captured, const int &agent_index){
+    std::string rf;
+    rf.append(this->world_directory);
+    rf.append("results/");
+    char temp[200];
+    int n = sprintf(temp, "results_for_param_file_%i_%s.xml", this->rand_seed, this->task_selection_method.c_str());
+    rf.append(temp);//this->param_file = temp_char;
+    cv::FileStorage fs;
+    fs.open(rf, cv::FileStorage::WRITE);
+    //ROS_INFO("World::~World: writing results");
+    //std::cout << "     " << rf << std::endl;
+    // randomizing stuff in a controlled way
+    fs << "task_selection_method" << this->task_selection_method;
+    fs << "reward" << this->reward_captured;
+    fs << "time" << this->c_time;
+}
+
+void World::loc_callback(const custom_messages::DMCTS_Loc &msg){
+	//ROS_ERROR("World::odom recieved[%i]: %.2f, %.2f", msg.index, msg.xLoc, msg.yLoc);
 	try {
-		this->agents[req.index]->update_pose(req.xLoc, req.yLoc, req.alt, req.yaw);
-		this->agents[req.index]->update_edge(req.edge_x, req.edge_y);
-		this->agent_status[req.index] = req.status;
+		this->agents[msg.index]->update_pose(msg.xLoc, msg.yLoc, 0.0, 0.0);
+		this->agents[msg.index]->update_edge(msg.edge_x, msg.edge_y);
+		this->agent_status[msg.index] = msg.status;
 		//ROS_WARN("recieved locs: req.status[%i]: %i", req.index, int(req.status));
 		
-		// check if everyone should start
-		bool flag = true;
-		for(size_t i=0; i<this->agent_status.size(); i++){
-			if(this->agent_status[i] == -1){
-				flag = false;
-				break;
+		if(!this->initialized_clock){
+			// check if everyone should start and clock should be initialized
+			bool flag = true;
+			for(size_t i=0; i<this->agent_status.size(); i++){
+				if(this->agent_status[i] == -1){
+					flag = false;
+					break;
+				}
+			}
+			if(!this->initialized_clock && flag){
+				this->start_time = -1;
+				this->initialized_clock = true;
 			}
 		}
-		if(!this->initialized_clock && flag){
-			this->start_time = -1;
-			this->initialized_clock = true;
-		}
-
-		resp.f = flag;
 	}
 	catch(...){
-		ROS_ERROR("World::odom recieved but could not be updated[%i]: %.2f, %.2f", req.index, req.xLoc, req.yLoc);
-		resp.f = false;
-	}		
-	return true;
+		ROS_ERROR("World::odom recieved but could not be updated[%i]: %.2f, %.2f", msg.index, msg.xLoc, msg.yLoc);
+	}
 }
 
 
@@ -334,6 +363,7 @@ void World::pulse_timer_callback(const ros::TimerEvent &e){
 	custom_messages::DMCTS_Pulse msg;
 	msg.my_index = -1;
 	msg.c_time = this->c_time;
+	msg.status = this->initialized_clock;
 	msg.n_active_tasks = this->get_n_active_tasks();
 	pulse_pub.publish(msg);
 }
@@ -583,20 +613,6 @@ void World::get_task_status_list(std::vector<bool> &task_status_list, std::vecto
 	}
 }
 
-double World::get_team_probability_at_time_except(const double &time, const int &task, const int &except_agent) {
-	double p_task_I_time = 0.0;
-	for (int a = 0; a < this->n_agents; a++) {
-		if (a != except_agent) { // ignore the specified agent
-			Agent_Coordinator* coord = this->agents[a]->get_coordinator(); // get coordinator for readability
-			double p_t = coord->get_prob_actions()[task]->get_probability_at_time(time); // get probable actions of agent a
-			if (p_t > 0) {
-				p_task_I_time = coord->get_prob_actions()[task]->probability_update_inclusive(p_task_I_time, p_t); // add to cumulative actions of team
-			}
-		}
-	}
-	return p_task_I_time;
-}
-
 void World::display_world(const int &ms) {
 
 	if (!this->show_display){
@@ -807,6 +823,11 @@ void World::initialize_agents(ros::NodeHandle nHandle) {
 }
 
 void World::initialize_PRM() {
+	// get travel distance between all nodes
+	this->travel_distances = cv::Mat(this->n_nodes, this->n_nodes, CV_32F, -1);
+	this->obstacle_distances = cv::Mat(this->n_nodes, this->n_nodes, CV_32F, -1);
+
+
 	// connect all nodes within radius
 	this->task_status_list.clear();
 	for (int i = 0; i < this->n_nodes; i++) {
@@ -829,6 +850,10 @@ void World::initialize_PRM() {
 					// set normal nbr and travel
 					this->nodes[i]->add_nbr(j, d, obs_cost);
 					this->nodes[j]->add_nbr(i, d, obs_cost);
+					this->travel_distances.at<float>(i,j) = d;
+					this->obstacle_distances.at<float>(i,j) = obs_cost;
+					this->travel_distances.at<float>(j,i) = d;
+					this->obstacle_distances.at<float>(j,i) = obs_cost;
 				}
 			}
 		}
@@ -862,7 +887,6 @@ void World::initialize_PRM() {
 					}
 				}
 			}
-
 			//cv::namedWindow("obstacles", cv::WINDOW_NORMAL);
 			//cv::imshow("obstacles", this->Obs_Mat);
 			//cv::waitKey(100);
@@ -887,8 +911,58 @@ void World::initialize_PRM() {
 			double obs_cost = min_dist*(1+mean_val);
 			this->nodes[i]->add_nbr(mindex, min_dist, obs_cost);
 			this->nodes[mindex]->add_nbr(i, min_dist, obs_cost);
+			this->travel_distances.at<float>(i,mindex) = min_dist;
+			this->obstacle_distances.at<float>(i,mindex) = obs_cost;
+			this->travel_distances.at<float>(mindex,i) = min_dist;
+			this->obstacle_distances.at<float>(mindex,i) = obs_cost;
+			//ROS_INFO("%i -> %i: %0.1f", i, mindex, min_dist);
 		}
 	}
+
+	/*
+	ROS_ERROR("travel_distances");
+	for(int i=0; i<this->n_nodes; i++){
+		for(int j=0; j<this->n_nodes; j++){
+			std::cout << this->obstacle_distances.at<float>(i,j) << ",";
+		}
+		std::cout << std::endl;
+	}
+	*/
+
+	for(int i=0; i<this->n_nodes; i++){
+		for(int j=i; j<this->n_nodes; j++){
+			if(this->travel_distances.at<float>(i,j) == -1){
+				double d = 0.0;
+				std::vector<int> path;
+				if(a_star(i, j, false, path, d)){
+					this->travel_distances.at<float>(i,j) = float(d);
+					this->travel_distances.at<float>(j,i) = float(d);
+				}
+				else{
+					this->travel_distances.at<float>(i,j) = INFINITY;
+					this->travel_distances.at<float>(j,i) = INFINITY;
+				}
+				if(a_star(i, j, true, path, d)){
+					this->obstacle_distances.at<float>(i,j) = float(d);
+					this->obstacle_distances.at<float>(j,i) = float(d);
+				}
+				else{
+					this->obstacle_distances.at<float>(i,j) = INFINITY;
+					this->obstacle_distances.at<float>(j,i) = INFINITY;
+				}
+			}
+		}
+	}
+
+	/*
+	ROS_ERROR("travel_distances prime");
+	for(int i=0; i<this->n_nodes; i++){
+		for(int j=0; j<this->n_nodes; j++){
+			std::cout << this->obstacle_distances.at<float>(i,j) << ",";
+		}
+		std::cout << std::endl;
+	}
+	*/
 }
 
 double World::rand_double_in_range(const double &min, const double &max) {

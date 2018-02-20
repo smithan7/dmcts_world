@@ -131,17 +131,10 @@ include_directories(
 
 add_executable(dmcts_world
 	src/Agent.cpp
-	src/Agent_Coordinator.cpp
-	src/Agent_Planning.cpp
 	src/DMCTS_world_node.cpp
-	src/Fuzzy_Bin.cpp
 	src/Goal.cpp
 	src/Pose.cpp
 	src/Map_Node.cpp
-	src/mcts.cpp
-	src/Proability_Node.cpp
-	src/Sorted_List.cpp
-	src/TreeNode.cpp
 	src/World.cpp)
 
 target_link_libraries(dmcts_world ${catkin_LIBRARIES} ${OpenCV_LIBS})

@@ -2,10 +2,12 @@
 
 #include <ros/ros.h>
 #include <custom_messages/Costmap_Bridge_Travel_Path_MSG.h>
-#include <custom_messages/DMCTS_Probability.h>
-#include "custom_messages/Get_Task_List.h"
-#include "custom_messages/Complete_Work.h"
-#include "custom_messages/Recieve_Agent_Locs.h"
+#include "custom_messages/DMCTS_Coordination.h"
+#include "custom_messages/DMCTS_Request_Task_List.h"
+#include "custom_messages/DMCTS_Request_Work.h"
+#include "custom_messages/DMCTS_Task_List.h"
+#include "custom_messages/DMCTS_Work_Status.h"
+#include "custom_messages/DMCTS_Loc.h"
 #include "custom_messages/DMCTS_Pulse.h"
 #include "gazebo_msgs/SpawnModel.h"
 #include "rosgraph_msgs/Clock.h"
@@ -24,29 +26,34 @@ class World
 {
 public:
 	World(ros::NodeHandle nHandle, const int &param_file, const bool &display_plot, const bool &score_run, const std::string &task_selection_method, const std::string &world_directory, const int &number_of_agents, const int &n_nodes_in, const bool &use_gazebo_obstacles, const double &p_initially_active);
-	// doing everything
-	//void iterate_all();
-	double get_team_probability_at_time_except(const double & time, const int & task, const int & except_agent);
+	
 	~World();
 	bool initialized;
 
 	// ros stuff
-	ros::Subscriber clock_sub;
-	ros::Publisher pulse_pub;
-	void clock_callback(const rosgraph_msgs::Clock &tmIn);
 	ros::Timer plot_timer, pulse_timer;
 	ros::Duration plot_duration, pulse_duration;
 	double start_time;
 	bool initialized_clock;
 	void plot_timer_callback(const ros::TimerEvent &e);
-	void pulse_timer_callback(const ros::TimerEvent &e);
 	void activate_task(const int &ti); // call from agent to activate task
 	void deactivate_task(const int &ti); // deactivates task
 
-	ros::ServiceServer task_list_server, work_server, locs_server;
-	bool send_task_list_callback(custom_messages::Get_Task_List::Request &req, custom_messages::Get_Task_List::Response &resp);	
-	bool complete_work_callback(custom_messages::Complete_Work::Request &req, custom_messages::Complete_Work::Response &resp);
-	bool recieve_agent_locs_callback(custom_messages::Recieve_Agent_Locs::Request &req, custom_messages::Recieve_Agent_Locs::Response &resp);
+    // Internal Subscriber
+	ros::Subscriber clock_sub;
+	void clock_callback(const rosgraph_msgs::Clock &tmIn);
+
+    // Publish to Agents
+    ros::Publisher task_list_pub, pulse_pub, work_status_pub;
+    void publish_task_list();
+	void pulse_timer_callback(const ros::TimerEvent &e);
+	void publish_work_status(const int &n_index, const int &a_index, const int &node_status);
+
+    // Subscribe to Agent topics
+	ros::Subscriber request_task_list_sub, request_work_sub, loc_sub;
+	void request_task_list_callback(const custom_messages::DMCTS_Request_Task_List &msg);
+	void request_work_callback(const custom_messages::DMCTS_Request_Work &msg);
+	void loc_callback(const custom_messages::DMCTS_Loc &msg);
 
 	void spawn_gazebo_model();
 	void delete_gazebo_node_model(const int &i);
@@ -98,6 +105,7 @@ private:
 	std::vector<double> max_task_times, min_task_times;
 	std::vector<double> max_task_works, min_task_works;
 	std::vector<cv::Point2d> starting_locs;
+	cv::Mat travel_distances, obstacle_distances;
 		
 	int my_agent_index;
 	std::vector<int> agent_status;
@@ -133,6 +141,7 @@ private:
 	// record keeper
 	std::vector<double> reward_captured;
 	std::vector<double> reward_time;
+	void record_work(const double &reward, const int &a_index);
 	
 	// initialize everything
 	int param_file_index;

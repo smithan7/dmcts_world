@@ -16,7 +16,7 @@ Map_Node(const double &x, const double &y, const int &index, const double &p_act
 	bool is_active() { return this->active; }; // is the task active
 	double get_reward_at_time(double time); // get the reward at time
 	double get_acted_upon(Agent* agent); // act for one time step, are there agents working on me, should I deactivate 
-	bool get_worked_on(const double &x, const double &y, const int &agent_type, const double &work_rate, const double &c_time, double &agent_work, double &reward_collected);
+	void get_worked_on(const int &agent_type, const double &c_time, double &agent_work, double &reward_collected);
 	cv::Scalar get_color() { return this->color; };
 	void activate(World* world); // activate the function
 	void deactivate(); // deactivate the function
