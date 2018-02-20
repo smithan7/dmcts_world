@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<opencv_storage>
-<task_selection_method>greedy_completion_reward</task_selection_method>
-<reward>
-  9.9970060329437256e+03 9.9949298288822174e+03 9.9886292383670807e+03
-  9.9821296579837799e+03</reward>
-<time>1.7870342016220093e+01</time>
-</opencv_storage>
