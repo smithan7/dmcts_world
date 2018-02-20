@@ -22,7 +22,7 @@
         <param name="p_task_initially_active" type="double" value="$(arg p_task_initially_active)"/>
         
         <node pkg="xbee_bridge" name="xbee" type="xbee_bridge.py" output="screen"/>
-        <param name="com_port" value="/dev/ttyUSB1"/>
+        <param name="com_port" value="/dev/ttyUSB0"/>
         <param name="baud_rate" value="9600"/>
         <param name="com_type" value="ground_station"/>
         <param name="fake_agent" value="false"/>
