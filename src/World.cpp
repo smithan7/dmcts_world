@@ -336,7 +336,7 @@ void World::loc_callback(const custom_messages::DMCTS_Loc &msg){
 		this->agents[msg.index]->update_pose(msg.xLoc, msg.yLoc, 0.0, 0.0);
 		this->agents[msg.index]->update_edge(msg.edge_x, msg.edge_y);
 		this->agent_status[msg.index] = msg.status;
-		//ROS_WARN("recieved locs: req.status[%i]: %i", req.index, int(req.status));
+		ROS_WARN("recieved locs: req.status[%i]: %i", msg.index, int(msg.status));
 		if(!this->initialized_clock){
 			// check if everyone should start and clock should be initialized
 			bool flag = true;
