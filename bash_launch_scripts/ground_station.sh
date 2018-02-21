@@ -25,11 +25,10 @@ roscore &
 pid="pid $!"
 sleep 1s
 
-#echo "setting sim_time true"
+echo "setting sim_time true"
 #rosparam set /use_sim_time true &
 #pid="$pid $!"
 #sleep 1s
-
 
 #echo "launching rviz"
 #rviz &

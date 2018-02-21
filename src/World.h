@@ -40,8 +40,9 @@ public:
 	void deactivate_task(const int &ti); // deactivates task
 
     // Internal Subscriber
-	ros::Subscriber clock_sub;
-	void clock_callback(const rosgraph_msgs::Clock &tmIn);
+	ros::Timer clock_timer;
+	ros::Duration clock_duration;
+	void clock_timer_callback(const ros::TimerEvent &e);
 
     // Publish to Agents
     ros::Publisher task_list_pub, pulse_pub, work_status_pub;

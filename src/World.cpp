@@ -43,9 +43,13 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	this->pulse_duration = ros::Duration(1.0);
 	this->pulse_timer = nHandle.createTimer(this->pulse_duration, &World::pulse_timer_callback, this);
 
+	// clock timer
+	this->clock_duration = ros::Duration(0.01);
+	this->clock_timer = nHandle.createTimer(this->clock_duration, &World::clock_timer_callback, this);
+
     // Internal Subscriber    
-    this->clock_sub = nHandle.subscribe("/clock", 1, &World::clock_callback, this);
-	
+    //n/a ~ was clocks
+
 	// Subscribe to Agents
 	this->request_task_list_sub = nHandle.subscribe("/dmcts_master/request_task_list", 10, &World::request_task_list_callback, this);
 	this->loc_sub = nHandle.subscribe("/dmcts_master/loc", 10, &World::loc_callback, this);
@@ -230,12 +234,13 @@ void World::make_obs_mat(){
 	//cv::waitKey(0);
 }
 
-void World::clock_callback(const rosgraph_msgs::Clock &tmIn){
+void World::clock_timer_callback(const ros::TimerEvent &e){
 	if(this->initialized_clock){
-		this->c_time = tmIn.clock.now().toSec() - this->start_time;
 		if(this->start_time < 0){
-			this->start_time = tmIn.clock.now().toSec();
+			this->start_time = ros::WallTime::now().toSec();
 		}
+		this->c_time = ros::WallTime::now().toSec() - this->start_time;
+		
 	}
 	else{
 		this->c_time = 0.0;
@@ -336,7 +341,6 @@ void World::loc_callback(const custom_messages::DMCTS_Loc &msg){
 		this->agents[msg.index]->update_pose(msg.xLoc, msg.yLoc, 0.0, 0.0);
 		this->agents[msg.index]->update_edge(msg.edge_x, msg.edge_y);
 		this->agent_status[msg.index] = msg.status;
-		ROS_WARN("recieved locs: req.status[%i]: %i", msg.index, int(msg.status));
 		if(!this->initialized_clock){
 			// check if everyone should start and clock should be initialized
 			bool flag = true;
