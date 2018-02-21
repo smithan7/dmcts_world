@@ -47,13 +47,8 @@ roslaunch fake_dmcts_quad fake_dmcts_quad.launch agent_index:=$my_index agent_al
     pid="$pid $!"
     sleep 1s
 
-echo "launching dmcts_world_node"
-roslaunch dmcts_world dmcts_world.launch num_agents:=$n_agents num_nodes:=$n_nodes param_number:=$param coord_method:=$coord_method  score_run:=$score_run gazebo_obstacles:=$gazebo_obstacles p_task_initially_active:=$p_task_initially_active &
-pid="$pid $!"
-sleep 1s
-
 echo "launching dmcts quad node"
-    roslaunch dmcts dmcts_n.launch agent_index:=$my_index num_agents:=$n_agents num_nodes:=$n_nodes coord_method:=$coord_method  desired_altitude:=${zs[my_index]} p_task_initially_active:=$p_task_initially_active pay_obstacle_costs:=${pay_obs_costs[my_index]} not_simulation:=false cruising_speed:=$cruising_speed & 
+    roslaunch dmcts dmcts_n.launch agent_index:=$my_index num_agents:=$n_agents num_nodes:=$n_nodes coord_method:=$coord_method  desired_altitude:=${zs[my_index]} p_task_initially_active:=$p_task_initially_active pay_obstacle_costs:=${pay_obs_costs[my_index]} not_simulation:=false cruising_speed:=$cruising_speed param_number:=$param & 
 #roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='greedy_completion_reward' &
 #roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='mcts_task_by_completion_reward' &
 #roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='mcts_task_by_completion_reward_impact_optimal' &
