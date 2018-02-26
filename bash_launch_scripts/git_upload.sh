@@ -2,15 +2,18 @@
 
 reason=1
 sleep_time='5s'
-
+commit_time='5s'
+status_time='5s'
  
 my_pid=$$
 
 echo "pushing costmap_bridge"
 cd ~/catkin_ws/src/costmap_bridge &
 git status &
+sleep $status_time
 git add -A &
 git commit -m "$reason" &
+sleep $commit_time
 git push &
 sleep $sleep_time
 
