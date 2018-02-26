@@ -4,7 +4,7 @@ reason=$1
 
 
 echo "******************** Storing GIT Info **************************************************"
-git config --global credential.helper 'cache --timeout=3600'
+git config --global credential.helper 'cache --timeout=60'
 
 echo "*********************************************************************************************"
 echo "********************  pushing costmap_bridge  ***********************************************"
