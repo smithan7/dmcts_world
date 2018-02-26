@@ -5,7 +5,6 @@ sleep_time='5s'
 
  
 my_pid=$$
-echo "My process ID is $my_pid"
 
 echo "pushing costmap_bridge"
 cd ~/catkin_ws/src/costmap_bridge &
@@ -13,7 +12,6 @@ git status &
 git add -A &
 git commit -m "$reason" &
 git push &
-pid=$!
 sleep $sleep_time
 
 echo "pushing custom messages"
@@ -22,7 +20,6 @@ git status &
 git add -A &
 git commit -m "$reason" &
 git push &
-pid=$!
 sleep $sleep_time
 
 echo "pushing dmcts"
@@ -31,7 +28,6 @@ git status &
 git add -A &
 git commit -m "$reason" &
 git push &
-pid=$!
 sleep $sleep_time
 
 echo "pushing dmcts_world $reason"
@@ -40,7 +36,6 @@ git status &
 git add -A &
 git commit -m "$reason" &
 git push &
-pid=$!
 sleep $sleep_time
 
 echo "pushing fake dmcts quad"
@@ -49,7 +44,6 @@ git status &
 git add -A &
 git commit -m "$reason" &
 git push &
-pid=$!
 sleep $sleep_time
 
 echo "pushing gps_to_local_bridge"
@@ -58,7 +52,6 @@ git status &
 git add -A &
 git commit -m "$reason" &
 git push &
-pid=$!
 sleep $sleep_time
 
 echo "pushing my_quad_controller"
@@ -67,7 +60,6 @@ git status &
 git add -A &
 git commit -m "$reason" &
 git push &
-pid=$!
 sleep $sleep_time
 
 echo "pushing xbee_bridge"
@@ -76,8 +68,6 @@ git status &
 git add -A &
 git commit -m "$reason" &
 git push &
-pid=$!
 sleep $sleep_time
 
 echo "Complete"
-
