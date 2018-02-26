@@ -37,10 +37,10 @@ echo "setting sim_time true"
 #sleep 1s
 
 
-echo "launching rviz"
-rviz &
-pid="$pid $!"
-sleep 10s
+#echo "launching rviz"
+#rviz &
+#pid="$pid $!"
+#sleep 10s
 
 echo "launching dmcts fake quad nodes"
 for ((ai=0; ai<n_agents; ai++))
