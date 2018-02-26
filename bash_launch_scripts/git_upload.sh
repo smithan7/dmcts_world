@@ -1,6 +1,6 @@
 #!/bin/bash
 
-reason=1
+reason=$1
 sleep_time='5s'
 commit_time='1s'
 
