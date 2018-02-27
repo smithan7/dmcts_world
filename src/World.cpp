@@ -369,6 +369,11 @@ void World::pulse_timer_callback(const ros::TimerEvent &e){
 	msg.status = this->initialized_clock;
 	msg.n_active_tasks = this->get_n_active_tasks();
 	pulse_pub.publish(msg);
+
+	if(msg.n_active_tasks == 0){
+		ROS_ERROR("DMCTS_World::pulse_timer_callback: all nodes complete, killing all processes");
+		system("rosnode kill -a");
+	}
 }
 
 int World::get_n_active_tasks(){
