@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<task_selection_method>mcts_task_by_completion_reward_gradient</task_selection_method>
+<reward>
+  9.9956485962867737e+03 9.9681092405319214e+03 9.9548920123577118e+03
+  9.9488879201412201e+03 9.9245315482616425e+03 9.9087454695701599e+03
+  9.8949158477783203e+03</reward>
+<time>1.0508415222167969e+02</time>
+</opencv_storage>

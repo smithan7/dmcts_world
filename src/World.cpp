@@ -323,7 +323,7 @@ void World::record_work(const double &reward_captured, const int &agent_index){
     rf.append(this->world_directory);
     rf.append("results/");
     char temp[200];
-    int n = sprintf(temp, "results_for_param_file_%i_%s.xml", this->rand_seed, this->task_selection_method.c_str());
+    int n = sprintf(temp, "results_for_param_file_%i_%i_%s.xml", this->rand_seed, this->n_agents, this->task_selection_method.c_str());
     rf.append(temp);//this->param_file = temp_char;
     cv::FileStorage fs;
     fs.open(rf, cv::FileStorage::WRITE);
@@ -332,7 +332,7 @@ void World::record_work(const double &reward_captured, const int &agent_index){
     // randomizing stuff in a controlled way
     fs << "task_selection_method" << this->task_selection_method;
     fs << "reward" << this->reward_captured;
-    fs << "time" << this->c_time;
+    fs << "time" << this->reward_time;
 }
 
 void World::loc_callback(const custom_messages::DMCTS_Loc &msg){
