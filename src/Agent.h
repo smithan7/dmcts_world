@@ -60,9 +60,15 @@ public:
 	int get_edge_x() { return this->edge.x; };
 	int get_edge_y() { return this->edge.y; };
 
+	void set_path(const std::vector<int> &path_in) {this->path = path_in; };
+	std::vector<int> get_path() {return this->path; };
+
 private:
 	// my location
 	Pose* pose;
+
+	// What I am likely to do
+	std::vector<int> path;
 
 	// planning and coordinator
 	Goal* goal_node;

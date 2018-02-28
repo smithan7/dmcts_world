@@ -6,6 +6,7 @@ param=$3
 coord_method=$4
 score_run=true
 p_task_initially_active=0.40
+gazebo_obstacles=false
 cruising_speed=2.0
 use_xbee=false
  

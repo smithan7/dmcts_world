@@ -10,7 +10,7 @@ echo "  n_agents: $n_agents"
 echo "  n_nodes: $n_nodes"
 echo "  n_trials: $n_trials"
 
-for ((t=0; t<n_trials; t++))
+for ((t=1; t<n_trials+1; t++))
 do
 	echo "***********************************************************************************************************"
 	echo "*****************************************  Starting trial $t **********************************************"
@@ -26,7 +26,3 @@ do
 	echo "***********************************************************************************************************"
 
 done
-
-
-trap "echo Killing all processes.; kill -2 TERM $pid; exit" SIGINT SIGTERM
-sleep 24h

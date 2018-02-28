@@ -36,7 +36,7 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	this->p_task_initially_active = p_initially_active; // how likely is it that a task is initially active, 3-0.25, 5-0.5, 7-0.75
 
 	// how often do I plot
-	this->plot_duration = ros::Duration(1.0); 
+	this->plot_duration = ros::Duration(0.2); 
 	this->plot_timer = nHandle.createTimer(this->plot_duration, &World::plot_timer_callback, this);
 	
 	// how often do I just say that I am ok
@@ -341,6 +341,8 @@ void World::loc_callback(const custom_messages::DMCTS_Loc &msg){
 		this->agents[msg.index]->update_pose(msg.xLoc, msg.yLoc, 0.0, 0.0);
 		this->agents[msg.index]->update_edge(msg.edge_x, msg.edge_y);
 		this->agent_status[msg.index] = msg.status;
+		this->agents[msg.index]->set_path(msg.path);
+
 		if(!this->initialized_clock){
 			// check if everyone should start and clock should be initialized
 			bool flag = true;
@@ -711,44 +713,48 @@ void World::display_world(const int &ms) {
 		}
 	}
 
-	/*
-	// draw agent goals
-	for (int i = 0; i < this->n_agents; i++) {
-		if(this->agents[i]->get_goal()){
-			cv::Point2d l = this->nodes[this->agents[i]->get_goal()->get_index()]->get_loc();
-			l.x *= scale_x; l.y *= scale_y;
-			cv::circle(map, l, 8, red, -1);
-			cv::circle(map, l, 4, black, -1);
-		}
-	}
-	*/
-
 	// draw agents
 	for (int i = 0; i < this->n_agents; i++) {
 		// draw their location
 		cv::Point2d p1(this->agents[i]->get_pose()->get_x(), this->agents[i]->get_pose()->get_y());
 		p1.x = scale_x * (p1.x + this->map_width/2); p1.y = scale_y * (p1.y + this->map_height/2);
 		if(p1.x >= 0.0 && p1.x <= des_x && p1.y >= 0.0 && p1.y <= des_y){
-			cv::circle(map, p1, 8, red, -1);
+			cv::circle(map, p1, 8, this->agents[i]->get_color(), -1);
 		
 			// draw line to their edge x
 			if(this->agents[i]->get_edge_x() >= 0 && this->agents[i]->get_edge_x() <= this->n_nodes){		
 				cv::Point2d p2 = this->nodes[this->agents[i]->get_edge_x()]->get_loc();
 				p2.x = scale_x * (p2.x + this->map_width/2); p2.y = scale_y * (p2.y + this->map_height/2);
-				cv::line(map, p1, p2, red, 2);
+				cv::line(map, p1, p2, this->agents[i]->get_color(), 2);
 			}
 			
 			// draw line to their edge y
 			if(this->agents[i]->get_edge_y() >= 0 && this->agents[i]->get_edge_y() <= this->n_nodes){
 				cv::Point2d p3 = this->nodes[this->agents[i]->get_edge_y()]->get_loc();
 				p3.x = scale_x * (p3.x + this->map_width/2); p3.y = scale_y * (p3.y + this->map_height/2);
-				cv::line(map, p1, p3, red, 2);
+				cv::line(map, p1, p3, this->agents[i]->get_color(), 2);
 			}
 
 			char text[10];
 			sprintf(text, "%i", i);
-			cv::putText(map, text, p1, CV_FONT_HERSHEY_COMPLEX, 1.0, red, 3);
+			cv::putText(map, text, p1, CV_FONT_HERSHEY_COMPLEX, 1.0, this->agents[i]->get_color(), 3);
 		}
+	
+		std::vector<int> a_path = this->agents[i]->get_path();
+		if(a_path.size() > 0){
+			cv::Point p_loc = this->nodes[this->agents[i]->get_edge_y()]->get_loc();
+			p_loc.x = scale_x * (p_loc.x + this->map_width/2); p_loc.y = scale_y * (p_loc.y + this->map_height/2);
+			for(size_t j=1; j<a_path.size(); j++){
+				cv::Point p_cur = this->nodes[a_path[j]]->get_loc();
+				p_cur.x = scale_x * (p_cur.x + this->map_width/2); p_cur.y = scale_y * (p_cur.y + this->map_height/2);
+				cv::Point p1(p_cur.x - 10*i, p_cur.y - 10*i);
+				cv::Point p2(p_loc.x - 10*i, p_loc.y - 10*i);
+
+				cv::arrowedLine(map, p2, p1, this->agents[i]->get_color(), 4);
+				p_loc = p_cur;
+			}
+		}
+	
 	}
 	
 	cv::putText(map, this->task_selection_method, cv::Point2d(40.0, des_y + 30.0), CV_FONT_HERSHEY_COMPLEX, 1.0, white, 3);
@@ -799,33 +805,32 @@ void World::initialize_agents(ros::NodeHandle nHandle) {
 		agent_types.push_back(0);
 	}
 
-	std::vector<cv::Scalar> agent_colors;
 	for (int i = 0; i < this->n_agent_types; i++) {
 		agent_travel_vels.push_back(2.0);
 		agent_obstacle_costs.push_back(true);
 		agent_work_radii.push_back(5.0);
-		if(this->my_agent_index == i){
-			double r = 255.0;
-			double b = 0.0;
-			double g = 0.0;
-
-			cv::Scalar color(b, g, r);
-			agent_colors.push_back(color);	
-		}
-		else{
-			double r = 0.0;
-			double b = 0.0;
-			double g = 0.0;
-
-			cv::Scalar color(b, g, r);
-			agent_colors.push_back(color);
-		}
 	}
 	this->agent_status.clear();
+
+	std::vector<cv::Scalar> agent_colors;
+	cv::Scalar red(0.0, 0.0, 255.0);
+	agent_colors.push_back(red);
+	cv::Scalar blue(255.0, 0.0, 0.0);
+	agent_colors.push_back(blue);
+	cv::Scalar green(0.0, 255.0, 0.0);
+	agent_colors.push_back(green);
+	cv::Scalar white(255.0, 255.0, 255.0);
+	agent_colors.push_back(white);
+	cv::Scalar orange(69.0, 100.0, 255.0);
+	agent_colors.push_back(orange);
+	cv::Scalar black(0.0, 0.0, 0.0);
+	cv::Scalar gray(127.0, 127.0, 127.0);
+	agent_colors.push_back(gray);
+
 	for (int i = 0; i < this->n_agents; i++) {
 		this->agent_status.push_back(-1);
 		int tp = agent_types[i];
-		Agent* a = new Agent(nHandle, i, tp, agent_travel_vels[tp], agent_colors[tp], agent_obstacle_costs[tp], agent_work_radii[tp], this);
+		Agent* a = new Agent(nHandle, i, tp, agent_travel_vels[tp], agent_colors[i], agent_obstacle_costs[tp], agent_work_radii[tp], this);
 		this->agents.push_back(a);
 	}
 }
