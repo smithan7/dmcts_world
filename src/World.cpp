@@ -830,7 +830,7 @@ void World::initialize_agents(ros::NodeHandle nHandle) {
 	for (int i = 0; i < this->n_agents; i++) {
 		this->agent_status.push_back(-1);
 		int tp = agent_types[i];
-		Agent* a = new Agent(nHandle, i, tp, agent_travel_vels[tp], agent_colors[i], agent_obstacle_costs[tp], agent_work_radii[tp], this);
+		Agent* a = new Agent(nHandle, i, tp, agent_travel_vels[tp], agent_colors[i % int(agent_colors.size())], agent_obstacle_costs[tp], agent_work_radii[tp], this);
 		this->agents.push_back(a);
 	}
 }

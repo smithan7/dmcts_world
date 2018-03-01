@@ -15,7 +15,7 @@
 <p_pay_obstacle_cost>0.</p_pay_obstacle_cost>
 <n_task_types>4</n_task_types>
 <flat_tasks>1</flat_tasks>
-<p_task_initially_active>6.2500000000000000e-01</p_task_initially_active>
+<p_task_initially_active>4.0000000000000002e-01</p_task_initially_active>
 <p_impossible_task>0.</p_impossible_task>
 <p_active_task>0.</p_active_task>
 <min_task_time>1000.</min_task_time>
