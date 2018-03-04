@@ -331,8 +331,16 @@ void World::record_work(const double &reward_captured, const int &agent_index){
     //std::cout << "     " << rf << std::endl;
     // randomizing stuff in a controlled way
     fs << "task_selection_method" << this->task_selection_method;
+    fs << "param" << this->rand_seed;
+    fs << "num_agents" << this->n_agents;
+    fs << "num_nodes" << this->n_nodes;
     fs << "reward" << this->reward_captured;
     fs << "time" << this->reward_time;
+    double cum_rew = 0.0;
+    for(size_t i=0; i<this->reward_captured.size(); i++){
+    	cum_rew += this->reward_captured[i];
+    }
+    fs << "cumulative_reward" << cum_rew;
 }
 
 void World::loc_callback(const custom_messages::DMCTS_Loc &msg){
@@ -374,6 +382,7 @@ void World::pulse_timer_callback(const ros::TimerEvent &e){
 
 	if(msg.n_active_tasks == 0){
 		ROS_ERROR("DMCTS_World::pulse_timer_callback: all nodes complete, killing all processes");
+		cv::waitKey(5000);
 		system("rosnode kill -a");
 	}
 }

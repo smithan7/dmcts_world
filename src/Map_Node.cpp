@@ -144,7 +144,7 @@ double Map_Node::get_reward_at_time(double time) {
 	}
 
 	if (this->flat_tasks){ // all tasks have equal rewards, sooner you get to them the better!
-		return 10000.0 - time;
+		return 200.0 - time;
 	}
 
 	if (this->reward_window_type == 0) {

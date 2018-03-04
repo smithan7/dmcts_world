@@ -5,7 +5,7 @@ n_nodes=$2
 param=$3
 coord_method=$4
 score_run=true
-p_task_initially_active=$5
+p_task_initially_active=0.40
 gazebo_obstacles=false
 cruising_speed=2.0
 use_xbee=false
@@ -50,15 +50,30 @@ do
     sleep 1s
 done
 
+rosparam set /number_of_agents $n_agents
+rosparam set /number_of_nodes $n_nodes
+rosparam set /p_task_initially_active $p_task_initially_active
+rosparam set /param_number $param
+rosparam set /coord_method $coord_method
+rosparam set /agent_index 0
+rosparam set /test_environment_number $param
+rosparam set /desired_altitude 5.0
+rosparam set /pay_obstacle_costs false
+rosparam set /cruising_speed $cruising_speed
+
+
 echo "launching dmcts quad nodes"
 for ((ai=0; ai<n_agents; ai++))
 do
-    roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:=$coord_method  desired_altitude:=${zs[ai]} p_task_initially_active:=$p_task_initially_active pay_obstacle_costs:=${pay_obs_costs[ai]} not_simulation:=false cruising_speed:=$cruising_speed cruising_speed:=$cruising_speed param_number:=$param use_xbee:=$use_xbee &
-    #roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='greedy_completion_reward' &
-    #roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='mcts_task_by_completion_reward' &
-    #roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='mcts_task_by_completion_reward_impact_optimal' &
-    pid="$pid $!"
-    sleep 2s
+    if [ $ai -gt 0 ]
+    then
+        roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:=$coord_method  desired_altitude:=${zs[ai]} p_task_initially_active:=$p_task_initially_active pay_obstacle_costs:=${pay_obs_costs[ai]} not_simulation:=false cruising_speed:=$cruising_speed cruising_speed:=$cruising_speed param_number:=$param use_xbee:=$use_xbee &
+        #roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='greedy_completion_reward' &
+        #roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='mcts_task_by_completion_reward' &
+        #roslaunch dmcts dmcts_n.launch agent_index:=$ai num_agents:=$n_agents num_nodes:=$n_nodes coord_method:='mcts_task_by_completion_reward_impact_optimal' &
+        pid="$pid $!"
+        sleep 2s
+    fi
 done
 
 echo "launching dmcts_world_node"
