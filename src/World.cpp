@@ -79,7 +79,7 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	// time stuff
 	this->c_time = 0.0;
 	this->dt = 1.0;
-	this->end_time = 10000.0;
+	this->end_time = 100.0;
 
 	// map and PRM stuff
 	this->map_height = 100.0; 
@@ -341,6 +341,12 @@ void World::record_work(const double &reward_captured, const int &agent_index){
     	cum_rew += this->reward_captured[i];
     }
     fs << "cumulative_reward" << cum_rew;
+
+
+    std::ofstream outfile;
+  	outfile.open("/home/andy/catkin_ws/src/dmcts_world/worlds/big_data.csv", std::ios_base::app);
+  	outfile << this->task_selection_method << "," << this->rand_seed << "," << this->n_agents << "," << this->n_nodes << "," << this->c_time << "," << cum_rew << "\n";
+  	outfile.close();
 }
 
 void World::loc_callback(const custom_messages::DMCTS_Loc &msg){
@@ -380,8 +386,19 @@ void World::pulse_timer_callback(const ros::TimerEvent &e){
 	msg.n_active_tasks = this->get_n_active_tasks();
 	pulse_pub.publish(msg);
 
-	if(msg.n_active_tasks == 0){
-		ROS_ERROR("DMCTS_World::pulse_timer_callback: all nodes complete, killing all processes");
+	if(msg.n_active_tasks == 0 || this->c_time > this->end_time){
+		ROS_ERROR("DMCTS_World::pulse_timer_callback: all nodes complete / time is up, killing all processes");
+		double cum_rew = 0.0;
+	    for(size_t i=0; i<this->reward_captured.size(); i++){
+	    	cum_rew += this->reward_captured[i];
+	    }
+	    
+
+	    std::ofstream outfile;
+	  	
+	  	outfile.open("/home/andy/catkin_ws/src/dmcts_world/worlds/results.csv", std::ios_base::app);
+	  	outfile << cum_rew << "\n"; 
+	  	outfile.close();
 		cv::waitKey(5000);
 		system("rosnode kill -a");
 	}

@@ -6,7 +6,7 @@
 <end_time>10000.</end_time>
 <map_height>100.</map_height>
 <map_widht>100.</map_widht>
-<n_nodes>100</n_nodes>
+<n_nodes>10</n_nodes>
 <k_map_connections>5</k_map_connections>
 <k_connection_radius>500.</k_connection_radius>
 <p_connect>1.</p_connect>
@@ -15,7 +15,7 @@
 <p_pay_obstacle_cost>0.</p_pay_obstacle_cost>
 <n_task_types>4</n_task_types>
 <flat_tasks>1</flat_tasks>
-<p_task_initially_active>4.0000000000000002e-01</p_task_initially_active>
+<p_task_initially_active>2.0000000000000001e-01</p_task_initially_active>
 <p_impossible_task>0.</p_impossible_task>
 <p_active_task>0.</p_active_task>
 <min_task_time>1000.</min_task_time>
@@ -24,7 +24,7 @@
 <max_task_work>1.</max_task_work>
 <min_task_reward>100.</min_task_reward>
 <max_task_reward>500.</max_task_reward>
-<n_agents>4</n_agents>
+<n_agents>2</n_agents>
 <n_agent_types>1</n_agent_types>
 <min_travel_vel>2.2999999999999998e+00</min_travel_vel>
 <max_travel_vel>2.7000000000000002e+00</max_travel_vel>

@@ -3,7 +3,7 @@
 <rand_seed>4</rand_seed>
 <c_time>0.</c_time>
 <dt>1.</dt>
-<end_time>10000.</end_time>
+<end_time>100.</end_time>
 <map_height>100.</map_height>
 <map_widht>100.</map_widht>
 <n_nodes>100</n_nodes>
@@ -15,7 +15,7 @@
 <p_pay_obstacle_cost>0.</p_pay_obstacle_cost>
 <n_task_types>4</n_task_types>
 <flat_tasks>1</flat_tasks>
-<p_task_initially_active>2.9999999999999999e-01</p_task_initially_active>
+<p_task_initially_active>2.5000000000000000e-01</p_task_initially_active>
 <p_impossible_task>0.</p_impossible_task>
 <p_active_task>0.</p_active_task>
 <min_task_time>1000.</min_task_time>
