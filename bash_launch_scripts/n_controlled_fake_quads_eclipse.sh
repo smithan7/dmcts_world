@@ -9,6 +9,7 @@ p_task_initially_active=0.40
 gazebo_obstacles=false
 cruising_speed=2.0
 use_xbee=false
+end_time=100.0
  
 my_pid=$$
 echo "My process ID is $my_pid"
@@ -77,7 +78,7 @@ do
 done
 
 echo "launching dmcts_world_node"
-roslaunch dmcts_world dmcts_world.launch num_agents:=$n_agents num_nodes:=$n_nodes param_number:=$param coord_method:=$coord_method  score_run:=$score_run gazebo_obstacles:=$gazebo_obstacles p_task_initially_active:=$p_task_initially_active use_xbee:=$use_xbee
+roslaunch dmcts_world dmcts_world.launch num_agents:=$n_agents num_nodes:=$n_nodes param_number:=$param coord_method:=$coord_method  score_run:=$score_run gazebo_obstacles:=$gazebo_obstacles p_task_initially_active:=$p_task_initially_active use_xbee:=$use_xbee end_time:=$end_time
 pid="$pid $!"
 sleep 1s
 #trap "echo Killing all processes.; kill -2 TERM $pid; exit" SIGINT SIGTERM

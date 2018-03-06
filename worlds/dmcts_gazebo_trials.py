@@ -6,13 +6,13 @@ import os
 
 if __name__ == '__main__':
 
-    num_agent_set = [2,3,5,7]
-    p_active_set = [0.25, 0.25, 0.4, 0.5, 0.7]
+    num_agent_set = [3]#[2,3,5,7]
+    p_active_set = [0.25]#[0.25, 0.25, 0.4, 0.5, 0.7]
     num_nodes = 100
     coord_type_set = ['"mcts_task_by_completion_reward_gradient"', '"greedy_completion_reward"']
 
     use_gazebo = True
-    maps_per_round = 5
+    maps_per_round = 1
 
     for ai in range(0,len(num_agent_set)):
         for ct in range(0,2):
@@ -21,8 +21,8 @@ if __name__ == '__main__':
             coord_type = coord_type_set[ct]#"mcts_task_by_completion_reward_gradient" "greedy_completion_reward"
             p_active = p_active_set[ai]
             
-            os.system('rm /home/andy/catkin_ws/src/dmcts_world/worlds/results.csv')
-            os.system('touch /home/andy/catkin_ws/src/dmcts_world/worlds/results.csv')
+            os.system('rm /home/andy/catkin_ws/src/dmcts_world/worlds/temp_results.csv')
+            os.system('touch /home/andy/catkin_ws/src/dmcts_world/worlds/temp_results.csv')
 
             for iter in range(1,maps_per_round+1):
                 best_row = []
@@ -30,7 +30,7 @@ if __name__ == '__main__':
                     r = csv.reader(csvfile)
                     best_score = 0.0
                     for row in r:
-                        if float(row[6]) > best_score and float(row[7]) == float(maps_per_round):
+                        if float(row[6]) > best_score:
                             best_score = float(row[6])
                             best_row = row
     
@@ -70,12 +70,12 @@ if __name__ == '__main__':
                 os.system(command)
                 os.system('sleep 5s')
                 os.system('rosnode kill -a')
-                os.system('sleep 5s')
+                os.system('sleep 15s')
     
             results = []
             n_rows = 0.0
             test_score = 0.0
-            with open('/home/andy/catkin_ws/src/dmcts_world/worlds/results.csv', 'rb') as resultsfile:
+            with open('/home/andy/catkin_ws/src/dmcts_world/worlds/temp_results.csv', 'rb') as resultsfile:
                 r = csv.reader(resultsfile)
                 for i, row in enumerate(r,1):
                     test_score += float(row[0])
@@ -86,7 +86,7 @@ if __name__ == '__main__':
             print("Results found: " + str(n_rows))
             test_score /= n_rows
     
-            os.system('rm /home/andy/catkin_ws/src/dmcts_world/worlds/results.csv')
+            os.system('rm /home/andy/catkin_ws/src/dmcts_world/worlds/temp_results.csv')
     
             print("test_values mean score: " + str(test_score))
             temp_param[6] = test_score

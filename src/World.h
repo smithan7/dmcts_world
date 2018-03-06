@@ -25,7 +25,7 @@ class Task;
 class World
 {
 public:
-	World(ros::NodeHandle nHandle, const int &param_file, const bool &display_plot, const bool &score_run, const std::string &task_selection_method, const std::string &world_directory, const int &number_of_agents, const int &n_nodes_in, const bool &use_gazebo_obstacles, const double &p_initially_active);
+	World(ros::NodeHandle nHandle, const int &param_file, const bool &display_plot, const bool &score_run, const std::string &task_selection_method, const std::string &world_directory, const int &number_of_agents, const int &n_nodes_in, const bool &use_gazebo_obstacles, const double &p_initially_active, const double &end_time);
 	
 	~World();
 	bool initialized;

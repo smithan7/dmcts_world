@@ -18,7 +18,7 @@
 #include <urdf/model.h>
 #include <tf/transform_listener.h>
 
-World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display_plot, const bool &score_run, const std::string &task_selection_method, const std::string &world_directory, const int &number_of_agents_in, const int &n_nodes_in, const bool &use_gazebo_obstacles, const double &p_initially_active ) {
+World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display_plot, const bool &score_run, const std::string &task_selection_method, const std::string &world_directory, const int &number_of_agents_in, const int &n_nodes_in, const bool &use_gazebo_obstacles, const double &p_initially_active, const double &end_time ) {
 	this->initialized = false;
 	this->initialized_clock = false;
 	this->show_display = display_plot;
@@ -31,9 +31,10 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	this->mcts_n_kids = 10;
 	this->world_directory = world_directory;
 	this->n_agents = number_of_agents_in;
-	this->flat_tasks = true;
+	this->flat_tasks = false;
 	this->start_time = -1.0;
 	this->p_task_initially_active = p_initially_active; // how likely is it that a task is initially active, 3-0.25, 5-0.5, 7-0.75
+	this->end_time = end_time;
 
 	// how often do I plot
 	this->plot_duration = ros::Duration(0.2); 
@@ -79,7 +80,6 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	// time stuff
 	this->c_time = 0.0;
 	this->dt = 1.0;
-	this->end_time = 100.0;
 
 	// map and PRM stuff
 	this->map_height = 100.0; 
@@ -170,9 +170,11 @@ void World::spawn_gazebo_model(){
 		//system("rosrun gazebo_ros spawn_model -file /home/andy/catkin_ws/src/dmcts_world/urdf_models/cylinder_1.urdf -urdf -model cyl -y 2.2 -x -0.3");
 	}
 	for(size_t i=0; i<this->nodes.size(); i++){
-		char stuff[200];
-		int n = sprintf(stuff, "rosrun gazebo_ros spawn_model -file /home/andy/catkin_ws/src/dmcts_world/urdf_models/box.urdf -urdf -model box_%i -y %0.2f -x %0.2f", int(i), this->nodes[i]->get_y(), this->nodes[i]->get_x());
-		system(stuff);
+		if(this->nodes[i]->is_active()){
+			char stuff[200];
+			int n = sprintf(stuff, "rosrun gazebo_ros spawn_model -file /home/andy/catkin_ws/src/dmcts_world/urdf_models/box.urdf -urdf -model box_%i -y %0.2f -x %0.2f", int(i), this->nodes[i]->get_y(), this->nodes[i]->get_x());
+			system(stuff);
+		}
 		//system("rosrun gazebo_ros spawn_model -file /home/andy/catkin_ws/src/dmcts_world/urdf_models/cylinder_1.urdf -urdf -model cyl -y 2.2 -x -0.3");
 	}		
 }

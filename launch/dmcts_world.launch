@@ -8,6 +8,7 @@
 	<arg name="gazebo_obstacles"/>
 	<arg name="p_task_initially_active"/>
 	<arg name="use_xbee"/>
+	<arg name="end_time"/>
 
 	<group ns="dmcts">
 	    <node pkg="dmcts_world" name="dmcts_world" type="dmcts_world" output="screen"/>
@@ -21,6 +22,7 @@
         <param name="use_gazebo_obstacles" type="bool" value="$(arg gazebo_obstacles)"/>
         <param name="coord_method" type="str" value="$(arg coord_method)"/>
         <param name="p_task_initially_active" type="double" value="$(arg p_task_initially_active)"/>
+        <param name="end_time" type="double" value="$(arg end_time)"/>
         
         <group if="$(arg use_xbee)">
             <param name="com_port" value="/dev/ttyUSB0"/>
