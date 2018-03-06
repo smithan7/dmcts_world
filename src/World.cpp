@@ -165,7 +165,7 @@ void World::spawn_gazebo_model(){
 		char stuff[200];
 		int rr = floor(this->obstacles[i][2]);
 
-		int n = sprintf(stuff, "rosrun gazebo_ros spawn_model -file /home/andy/catkin_ws/src/dmcts_world/urdf_models/cylinder_%i.urdf -urdf -model cyl_%i -y %0.2f -x %0.2f",rr, int(i), this->obstacles[i][1] - this->map_width/2, this->obstacles[i][0] - this->map_height/2);
+		int n = sprintf(stuff, "rosrun gazebo_ros spawn_model -file /home/andy/catkin_ws/src/dmcts_world/urdf_models/cylinder_%i.urdf -urdf -model cyl_%i -y %0.2f -x %0.2f",rr, int(i), this->obstacles[i][1], this->obstacles[i][0]);
 		system(stuff);
 		//system("rosrun gazebo_ros spawn_model -file /home/andy/catkin_ws/src/dmcts_world/urdf_models/cylinder_1.urdf -urdf -model cyl -y 2.2 -x -0.3");
 	}
@@ -194,13 +194,13 @@ void World::make_obs_mat(){
 		//ROS_INFO("making obstacle");
 		// create a potnetial obstacle
 		double rr = rand_double_in_range(1,10);
-		double xx = rand_double_in_range(0,this->map_width);
-		double yy = rand_double_in_range(0,this->map_height);
+		double xx = rand_double_in_range(-this->map_width/2.1,this->map_width/2.1);
+		double yy = rand_double_in_range(-this->map_height/2.1,this->map_height/2.1);
 		//ROS_INFO("obs: %.1f, %.1f, r =  %.1f", xx, yy, rr);
 		// check if any starting locations are in an obstacle
 		bool flag = true;
 		for(size_t s=0; s<this->starting_locs.size(); s++){
-			double d = sqrt(pow(xx-(this->starting_locs[s].x+this->map_width/2),2) + pow(yy-this->starting_locs[s].y+this->map_height/2,2));
+			double d = sqrt(pow(xx-this->starting_locs[s].x,2) + pow(yy-this->starting_locs[s].y,2));
 			//ROS_INFO("starting_locs: %.1f, %.1f, d = %.1f", this->starting_locs[s].x+this->map_width/2, this->starting_locs[s].y+this->map_height/2, d);
 			if(rr+2 >= d ){
 				// starting loc is in obstacle
@@ -212,7 +212,7 @@ void World::make_obs_mat(){
 		if(flag){
 			for(size_t s=0; s<this->obstacles.size(); s++){
 				double d = sqrt(pow(xx-this->obstacles[s][0],2) + pow(yy-this->obstacles[s][1],2));
-				if(rr+1 >= d || this->obstacles[s][2]+1 >= d){
+				if(rr + this->obstacles[s][2]+1 >= d){
 					// obstacle is in obstacle
 					flag = false;
 					break;
@@ -227,7 +227,7 @@ void World::make_obs_mat(){
 
 	for(int j=4; j>0; j--){
 		for(size_t i=0; i<this->obstacles.size(); i++){
-			cv::circle(this->Obs_Mat, cv::Point(this->obstacles[i][0], this->obstacles[i][1]), this->obstacles[i][2]+j, cv::Scalar(255 - 25*j), -1);	
+			cv::circle(this->Obs_Mat, cv::Point((this->obstacles[i][0]+this->map_width/2), (this->obstacles[i][1]+this->map_height/2)), this->obstacles[i][2]+j, cv::Scalar(255 - 25*j), -1);
 		}
 	}
 
@@ -679,7 +679,7 @@ void World::display_world(const int &ms) {
 		this->PRM_Mat = cv::Mat::zeros(int(des_x), int(des_y), CV_8UC3);
 		// draw obstacles
 		for(size_t i=0; i<this->obstacles.size(); i++){
-			cv::Point2d pp = cv::Point2d(this->obstacles[i][0]*scale_x, this->obstacles[i][1]*scale_y);
+			cv::Point2d pp = cv::Point2d((this->obstacles[i][0]+ + this->map_width/2)*scale_x, (this->obstacles[i][1]+ + this->map_width/2)*scale_y);
 			cv::circle(this->PRM_Mat, pp, this->obstacles[i][2]*scale_x, cv::Scalar(127, 127, 127), -1);
 		}
 
@@ -949,7 +949,7 @@ void World::initialize_PRM() {
 				val_sum += double(this->Obs_Mat.at<uchar>(lit.pos()))/255.0;
 			}
 			double mean_val = val_sum / double(lit.count);
-			double obs_cost = min_dist*(1+mean_val);
+			double obs_cost = min_dist + 3.14159*mean_val;
 			this->nodes[i]->add_nbr(mindex, min_dist, obs_cost);
 			this->nodes[mindex]->add_nbr(i, min_dist, obs_cost);
 			this->travel_distances.at<float>(i,mindex) = min_dist;
@@ -1106,8 +1106,9 @@ void World::initialize_nodes_and_tasks() {
 		bool flag = true;
 
 		while(flag){
-			x = this->rand_double_in_range(-this->map_width/2, this->map_width/2);
-			y = this->rand_double_in_range(-this->map_height/2, this->map_height/2);
+			x = this->rand_double_in_range(-this->map_width/2.1, this->map_width/2.1);
+			y = this->rand_double_in_range(-this->map_height/2.1, this->map_height/2.1);
+
 			if(this->Obs_Mat.at<uchar>(cv::Point(x + this->map_width/2,y+this->map_height/2)) == 0){
 				flag = false;
 			}
