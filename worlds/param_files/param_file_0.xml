@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <opencv_storage>
-<rand_seed>34</rand_seed>
+<rand_seed>0</rand_seed>
 <c_time>0.</c_time>
 <dt>1.</dt>
 <end_time>120.</end_time>
-<map_height_meters>100.</map_height_meters>
-<map_width_meters>100.</map_width_meters>
+<map_height>3.9073138817414801e+01</map_height>
+<map_width>1.0667121750923624e+02</map_width>
 <n_nodes>20</n_nodes>
 <k_map_connections>5</k_map_connections>
 <k_connection_radius>500.</k_connection_radius>
@@ -15,7 +15,7 @@
 <p_pay_obstacle_cost>0.</p_pay_obstacle_cost>
 <n_task_types>4</n_task_types>
 <flat_tasks>0</flat_tasks>
-<p_task_initially_active>2.0000000000000001e-01</p_task_initially_active>
+<p_task_initially_active>3.4378905799210630e-317</p_task_initially_active>
 <p_impossible_task>0.</p_impossible_task>
 <p_active_task>0.</p_active_task>
 <min_task_time>1000.</min_task_time>

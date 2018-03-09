@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <opencv_storage>
-<rand_seed>34</rand_seed>
+<rand_seed>65535</rand_seed>
 <c_time>0.</c_time>
 <dt>1.</dt>
 <end_time>120.</end_time>
-<map_height_meters>100.</map_height_meters>
-<map_width_meters>100.</map_width_meters>
+<map_height>3.9073138817414801e+01</map_height>
+<map_widht>1.0667121750923624e+02</map_widht>
 <n_nodes>20</n_nodes>
 <k_map_connections>5</k_map_connections>
 <k_connection_radius>500.</k_connection_radius>

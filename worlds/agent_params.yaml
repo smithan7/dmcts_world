@@ -1,0 +1,6 @@
+north_lat: 44.565476
+south_lat: 44.565125
+east_lon: -123.271564
+west_lon: -123.272909
+test_environment_img: /home/andy/catkin_ws/src/dmcts_world/worlds/hardware4/hardware4_obstacles.png
+meters_per_cell: 0.2

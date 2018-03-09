@@ -1,0 +1,9 @@
+north_lat: 44.565476
+south_lat: 44.564444
+east_lon: -123.271667
+west_lon: -123.272909
+test_environment_img: ""
+test_obstacle_img: ""
+meters_per_cell: 0.2
+inflation_iters: 10
+obstacle_increase: 3.15

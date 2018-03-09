@@ -18,22 +18,52 @@
 #include <urdf/model.h>
 #include <tf/transform_listener.h>
 
-World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display_plot, const bool &score_run, const std::string &task_selection_method, const std::string &world_directory, const int &number_of_agents_in, const int &n_nodes_in, const bool &use_gazebo_obstacles, const double &p_initially_active, const double &end_time ) {
+World::World(ros::NodeHandle nHandle) {
+
+	ros::param::get("/test_environment_img", this->test_environment_img);
+	ros::param::get("/test_obstacle_img", this->test_obstacle_img);
+	ros::param::get("/number_of_agents", this->n_agents);
+	ros::param::get("/param_number", this->rand_seed);
+	ros::param::get("/world_directory", this->world_directory);
+	ros::param::get("/score_run", this->score_run);
+	ros::param::get("/dmcts_world/display_map", this->show_display );
+	ros::param::get("/coord_method", this->task_selection_method);
+	ros::param::get("/number_of_nodes", this->n_nodes);
+	ros::param::get("/use_gazebo_obstacles", this->use_gazebo_obstacles);
+	ros::param::get("/p_task_initially_active", p_task_initially_active);
+	ros::param::get("/end_time", end_time);
+	ros::param::get("/north_lat", this->north_lat);
+	ros::param::get("/south_lat", this->south_lat);
+	ros::param::get("/east_lon", this->east_lon);
+	ros::param::get("/west_lon", this->west_lon);
+	ros::param::get("/inflation_iters", this->inflation_iters);
+	ros::param::get("/obstacle_increase", this->obstacle_increase);
+   	
+	ROS_INFO("World::initializing world");
+	ROS_INFO("   test_environment_img %s", this->test_environment_img.c_str());
+	ROS_INFO("   test_obstacle_img %s", this->test_obstacle_img.c_str());
+	ROS_INFO("   number_of_agents %i", this->n_agents);
+	ROS_INFO("   param_number %i", this->rand_seed);
+	ROS_INFO("   world directory %s", this->world_directory.c_str());
+	ROS_INFO("   score_run %i", this->score_run);
+	ROS_INFO("   display_map %i", this->show_display);
+	ROS_INFO("   coord_method %s", this->task_selection_method.c_str());
+	ROS_INFO("   n_nodes %i", this->n_nodes);
+	ROS_INFO("   use_gazebo_obstacles %i", this->use_gazebo_obstacles);
+	ROS_INFO("   p_task_initially_active %0.4f", this->p_task_initially_active);
+	ROS_INFO("   end_time %0.2f", this->end_time);
+    ROS_INFO("   north_lat %0.6f", this->north_lat);
+	ROS_INFO("   south_lat %0.6f", this->south_lat);
+	ROS_INFO("   west_lon %0.6f", this->west_lon);
+	ROS_INFO("   east_lon %0.6f", this->east_lon);
+	ROS_INFO("   inflation_iters %i", this->inflation_iters);
+	ROS_INFO("   obstacle_increase %0.2f", this->obstacle_increase);
+
 	this->initialized = false;
 	this->initialized_clock = false;
-	this->show_display = display_plot;
-	this->score_run = score_run;
-	this->param_file_index = param_file;
-	this->task_selection_method = task_selection_method;
-	this->mcts_search_type = "SW-UCT"; // UCT or SW-UCT
-	this->mcts_reward_type = "normal"; // "impact";
-	this->impact_style = "nn";
-	this->mcts_n_kids = 10;
-	this->world_directory = world_directory;
-	this->n_agents = number_of_agents_in;
+
 	this->flat_tasks = false;
 	this->start_time = -1.0;
-	this->p_task_initially_active = p_initially_active; // how likely is it that a task is initially active, 3-0.25, 5-0.5, 7-0.75
 	this->end_time = end_time;
 
 	// how often do I plot
@@ -48,9 +78,6 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	this->clock_duration = ros::Duration(0.01);
 	this->clock_timer = nHandle.createTimer(this->clock_duration, &World::clock_timer_callback, this);
 
-    // Internal Subscriber    
-    //n/a ~ was clocks
-
 	// Subscribe to Agents
 	this->request_task_list_sub = nHandle.subscribe("/dmcts_master/request_task_list", 10, &World::request_task_list_callback, this);
 	this->loc_sub = nHandle.subscribe("/dmcts_master/loc", 10, &World::loc_callback, this);
@@ -61,30 +88,19 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	this->task_list_pub = nHandle.advertise<custom_messages::DMCTS_Task_List>("/dmcts_master/task_list", 10);
 	this->work_status_pub = nHandle.advertise<custom_messages::DMCTS_Work_Status>("/dmcts_master/work_status", 10);
 
-	if (this->param_file_index > 0) {
-		// load  everything from xml
-		this->rand_seed = this->param_file_index;
-		ROS_INFO("	Recieved RAND_SEED: %i", this->rand_seed);
-		ROS_INFO("	Setting RAND_SEED param");
-		ros::param::set("parameter_seed", this->rand_seed);
-		//this->load_params();
-	}
-	else { // generate_params and then write them
-		// seed the randomness in the simulator
-		srand(int(time(NULL)));
-		this->rand_seed = rand() % 1000000;
-		ROS_INFO("	GENERATED RAND_SEED: %i", this->rand_seed);
-		ROS_INFO("	Setting RAND_SEED param");
-		ros::param::set("parameter_seed", this->rand_seed);
-	}
+	ROS_INFO("Recieved RAND_SEED: %i", this->rand_seed);
+
 	// time stuff
 	this->c_time = 0.0;
 	this->dt = 1.0;
 
 	// map and PRM stuff
-	this->map_height = 100.0; 
-	this->map_width = 100.0; // 1000
-	this->n_nodes = n_nodes_in; 
+	this->map_width_meters = this->get_global_distance(this->north_lat, this->west_lon, this->north_lat, this->east_lon);
+	this->map_height_meters = this->get_global_distance(this->north_lat, this->west_lon, this->south_lat, this->west_lon);
+	ROS_INFO("    map size: %0.2f, %0.2f (meters)", this->map_width_meters, this->map_height_meters);
+
+	ROS_INFO("DMCTS_world_node::Word::World(): map size: %0.2f, %0.2f (meters)", this->map_width_meters, this->map_height_meters);
+	this->n_obstacles = 10;
 	this->k_map_connections = 5;
 	this->k_connection_radius = 500.0;
 	this->p_connect = 1.0;
@@ -124,26 +140,20 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	// reset randomization
 	srand(this->rand_seed);
 
-	// seed the obstacle mat
-	this->make_obs_mat();
+	if(this->test_environment_img.empty()){
+		this->make_obs_mat(); // create random obstacles
+	}
+	else{
+		this->seed_obs_mat(); // seed into cells satelite information
+	}
+	cv::Mat s = cv::Mat::zeros(this->Obs_Mat.size(), CV_16S);
+	for(int i=0; i<this->inflation_iters; i++){
+		cv::blur(this->Obs_Mat,s,cv::Size(5,5));
+		cv::max(this->Obs_Mat,s,this->Obs_Mat);
+	}
 	
 	// write params
 	this->write_params();
-
-	if (this->task_selection_method == "mcts_task_by_completion_reward_impact_before_and_after") {
-		this->impact_style = "before_and_after";
-		this->task_selection_method = "mcts_task_by_completion_reward_impact";
-	}
-
-	if (this->task_selection_method == "mcts_task_by_completion_reward_impact_optimal") {
-		this->impact_style = "optimal";
-		this->task_selection_method = "mcts_task_by_completion_reward_impact";
-	}
-
-	if (this->task_selection_method == "mcts_task_by_completion_reward_impact_fixed") {
-		this->impact_style = "fixed";
-		this->task_selection_method = "mcts_task_by_completion_reward_impact";
-	}
 
 	// reset randomization
 	srand(this->rand_seed);
@@ -155,8 +165,12 @@ World::World(ros::NodeHandle nHandle, const int &param_file, const bool &display
 	this->initialize_agents(nHandle);
 	this->initialized = true;
 
-	if(use_gazebo_obstacles){
+	if(this->use_gazebo_obstacles){
 		this->spawn_gazebo_model();
+	}
+
+	if(this->show_display){
+		this->display_world(100);
 	}
 }
 
@@ -186,22 +200,51 @@ void World::delete_gazebo_node_model(const int &i){
 		//rosservice call gazebo/delete_model '{model_name: coffee_cup}'
 }
 
+void World::seed_obs_mat(){
+
+	this->Obs_Mat = cv::Mat::zeros(cv::Size(int(this->map_width_meters), int(this->map_height_meters)), CV_8UC1);
+	this->Env_Mat = cv::Mat::zeros(cv::Size(int(this->map_width_meters), int(this->map_height_meters)), CV_8UC3);
+
+	cv::Mat temp_obs = cv::imread(this->test_obstacle_img, CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat temp_env = cv::imread(this->test_environment_img, CV_LOAD_IMAGE_COLOR);
+
+	//cv::namedWindow("DMCTS_World::World::seed_obs_mat:Obstacles", cv::WINDOW_NORMAL);
+	//cv::imshow("DMCTS_World::World::seed_obs_mat:Obstacles", temp_env);
+	//cv::waitKey(0);
+
+	if(!temp_obs.data || !temp_env.data){
+		ROS_ERROR("World::seed_img::Could NOT load img");
+		return;
+	}
+
+	cv::resize(temp_obs, this->Obs_Mat, this->Obs_Mat.size());
+	cv::resize(temp_env, this->Env_Mat, this->Env_Mat.size());
+
+	//cv::namedWindow("DMCTS_World::World::seed_obs_mat:Obstacles", cv::WINDOW_NORMAL);
+	//cv::imshow("DMCTS_World::World::seed_obs_mat:Obstacles", this->Env_Mat);
+	//cv::waitKey(0);
+}
+
 void World::make_obs_mat(){
-	this->Obs_Mat = cv::Mat::zeros(this->map_width, this->map_height, CV_8UC1);
+	this->map_width_meters = 100.0;
+	this->map_height_meters = 100.0;
+	this->Obs_Mat = cv::Mat::zeros(cv::Size(int(this->map_width_meters), int(this->map_height_meters)), CV_8UC1);
+	this->Env_Mat = cv::Mat::zeros(cv::Size(int(this->map_width_meters), int(this->map_height_meters)), CV_8UC3);
+	
 	this->obstacles.clear();
-	ROS_INFO("DMCTS_World::World::make_obs_mat: making obstacles");
-	while(this->obstacles.size() < 10){
+	//ROS_INFO("DMCTS_World::World::make_obs_mat: making obstacles");
+	while(this->obstacles.size() < this->n_obstacles){
 		//ROS_INFO("making obstacle");
 		// create a potnetial obstacle
 		double rr = rand_double_in_range(1,10);
-		double xx = rand_double_in_range(-this->map_width/2.1,this->map_width/2.1);
-		double yy = rand_double_in_range(-this->map_height/2.1,this->map_height/2.1);
+		double xx = rand_double_in_range(-this->map_width_meters/2.1,this->map_width_meters/2.1);
+		double yy = rand_double_in_range(-this->map_height_meters/2.1,this->map_height_meters/2.1);
 		//ROS_INFO("obs: %.1f, %.1f, r =  %.1f", xx, yy, rr);
 		// check if any starting locations are in an obstacle
 		bool flag = true;
 		for(size_t s=0; s<this->starting_locs.size(); s++){
 			double d = sqrt(pow(xx-this->starting_locs[s].x,2) + pow(yy-this->starting_locs[s].y,2));
-			//ROS_INFO("starting_locs: %.1f, %.1f, d = %.1f", this->starting_locs[s].x+this->map_width/2, this->starting_locs[s].y+this->map_height/2, d);
+			//ROS_INFO("starting_locs: %.1f, %.1f, d = %.1f", this->starting_locs[s].x+this->map_width_meters/2, this->starting_locs[s].y+this->map_height_meters/2, d);
 			if(rr+2 >= d ){
 				// starting loc is in obstacle
 				flag = false;
@@ -213,7 +256,7 @@ void World::make_obs_mat(){
 			for(size_t s=0; s<this->obstacles.size(); s++){
 				double d = sqrt(pow(xx-this->obstacles[s][0],2) + pow(yy-this->obstacles[s][1],2));
 				if(rr + this->obstacles[s][2]+1 >= d){
-					// obstacle is in obstacle
+					// obstacle is in obstacle so don't make
 					flag = false;
 					break;
 				}
@@ -225,10 +268,9 @@ void World::make_obs_mat(){
 		}
 	}
 
-	for(int j=4; j>0; j--){
-		for(size_t i=0; i<this->obstacles.size(); i++){
-			cv::circle(this->Obs_Mat, cv::Point((this->obstacles[i][0]+this->map_width/2), (this->obstacles[i][1]+this->map_height/2)), this->obstacles[i][2]+j, cv::Scalar(255 - 25*j), -1);
-		}
+	for(size_t i=0; i<this->obstacles.size(); i++){
+		cv::circle(this->Obs_Mat, cv::Point((this->obstacles[i][0]+this->map_width_meters/2), (this->obstacles[i][1]+this->map_height_meters/2)), this->obstacles[i][2], cv::Scalar(255), -1);
+		cv::circle(this->Env_Mat, cv::Point((this->obstacles[i][0]+this->map_width_meters/2), (this->obstacles[i][1]+this->map_height_meters/2)), this->obstacles[i][2], cv::Scalar(255,0,0), -1);
 	}
 
 	//cv::namedWindow("DMCTS_World::World::make_obs_mat:Obstacles", cv::WINDOW_NORMAL);
@@ -455,8 +497,8 @@ void World::write_params() {
 	fs << "end_time" << this->end_time;
 
 	// map and PRM stuff
-	fs << "map_height" << this->map_height;
-	fs << "map_widht" << this->map_width;
+	fs << "map_height_meters" << this->map_height_meters;
+	fs << "map_width_meters" << this->map_width_meters;
 	fs << "n_nodes" << this->n_nodes;
 	fs << "k_map_connections" << this->k_map_connections;
 	fs << "k_connection_radius" << this->k_connection_radius;
@@ -511,8 +553,8 @@ void World::load_params() {
 	fs["end_time"] >> this->end_time;
 
 	// map and PRM stuff
-	fs["map_height"] >> this->map_height;
-	fs["map_widht"] >> this->map_width;
+	fs["map_height_meters"] >> this->map_height_meters;
+	fs["map_width_meters"] >> this->map_width_meters;
 	fs["n_nodes"] >> this->n_nodes;
 	fs["k_map_connections"] >> this->k_map_connections;
 	fs["k_connection_radius"] >> this->k_connection_radius;
@@ -543,8 +585,6 @@ void World::load_params() {
 	fs ["max_agent_work"] >> this->max_agent_work; // max amount of work an agent does per second
 	
 	fs.release();
-
-
 }
 
 void World::generate_tasks() {
@@ -669,34 +709,45 @@ void World::display_world(const int &ms) {
 	cv::Scalar black(0.0, 0.0, 0.0);
 	cv::Scalar gray(127.0, 127.0, 127.0);
 
-	double des_x = 1000.0;
-	double des_y = 1000.0;
+	double des_x, des_y, scale;
 
-	double scale_x = des_x / this->map_width;
-	double scale_y = des_y / this->map_height;
+	if(this->map_width_meters > this->map_height_meters){
+		des_x = 1000.0;
+		scale = des_x / this->map_width_meters;
+		des_y = this->map_height_meters * scale;
+	}
+	else{
+		des_y = 1000.0;
+		scale = des_y / this->map_height_meters;
+		des_x = this->map_width_meters * scale;
+	}
+
+	//ROS_INFO("have des: %.2f and %.2f", des_x, des_y);
 
 	if (this->PRM_Mat.empty()) {
-		this->PRM_Mat = cv::Mat::zeros(int(des_x), int(des_y), CV_8UC3);
+		this->PRM_Mat = cv::Mat::zeros(cv::Size(des_x, des_y), CV_8UC3);
+		//ROS_INFO("made it here with PRM: %i and %i", this->PRM_Mat.cols, this->PRM_Mat.rows);
 		// draw obstacles
-		for(size_t i=0; i<this->obstacles.size(); i++){
-			cv::Point2d pp = cv::Point2d((this->obstacles[i][0]+ + this->map_width/2)*scale_x, (this->obstacles[i][1]+ + this->map_width/2)*scale_y);
-			cv::circle(this->PRM_Mat, pp, this->obstacles[i][2]*scale_x, cv::Scalar(127, 127, 127), -1);
-		}
+		cv::resize(this->Env_Mat, this->PRM_Mat, this->PRM_Mat.size());
+		
 
 		// draw PRM connections
 		for (int i = 0; i < this->n_nodes; i++) {
 			int index = -1;
 			for(int iter=0; iter<this->nodes[i]->get_n_nbrs(); iter++){
 				if (this->nodes[i]->get_nbr_i(iter, index)) {
-					double cost = 0.0;
-					double dist = 0.0;
-					if (this->nodes[i]->get_nbr_obstacle_cost(iter, cost) && this->nodes[i]->get_nbr_distance(iter, dist)) {
-						cost = (cost - dist) / cost;
-						cv::Vec3b pink(uchar(255.0*(1.0 - cost)), uchar(255.0*(1.0 - cost)), 255);
+					double obs_cost = 0.0;
+					double free_dist = 0.0;
+					if (this->nodes[i]->get_nbr_obstacle_cost(iter, obs_cost) && this->nodes[i]->get_nbr_distance(iter, free_dist)) {
+						double max_cost = free_dist * this->obstacle_increase;
+						double ratio = (obs_cost-free_dist) / max_cost;
+						cv::Vec3b pink(uchar(255.0*(1.0 - ratio)), uchar(255.0*(1.0 - ratio)), 255);
 						cv::Point2d p1 = this->nodes[i]->get_loc();
 						cv::Point2d p2 = this->nodes[index]->get_loc();
-						p1.x = scale_x * (p1.x + this->map_width/2); p1.y = scale_y * (p1.y + this->map_height/2);
-						p2.x = scale_x * (p2.x + this->map_width/2); p2.y = scale_y * (p2.y + this->map_height/2);
+						p1.x = scale * (p1.x + this->map_width_meters/2.0);
+						p1.y = scale * (p1.y + this->map_height_meters/2.0);
+						p2.x = scale * (p2.x + this->map_width_meters/2.0);
+						p2.y = scale * (p2.y + this->map_height_meters/2.0);
 						cv::line(this->PRM_Mat, p1, p2, pink, 2);
 					}
 				}
@@ -706,15 +757,17 @@ void World::display_world(const int &ms) {
 		// draw nodes
 		for (int i = 0; i < this->n_nodes; i++) {
 			cv::Point2d p1 = this->nodes[i]->get_loc();
-			p1.x = scale_x * (p1.x + this->map_width/2); p1.y = scale_y * (p1.y + this->map_height/2);
-			cv::circle(this->PRM_Mat, p1, 5, cv::Scalar(255, 255, 255), -1);
+			p1.x = scale * (p1.x + this->map_width_meters/2.0);
+			p1.y = scale * (p1.y + this->map_height_meters/2.0);
+			cv::circle(this->PRM_Mat, p1, 5, blue, -1);
 		}
 
 		// label tasks
 		for (int i = 0; i < this->n_nodes; i++) {
 			double d = -5.0;
 			cv::Point2d p1 = this->nodes[i]->get_loc();
-			p1.x = scale_x * (p1.x + this->map_width/2); p1.y = scale_y * (p1.y + this->map_height/2);
+			p1.x = scale * (p1.x + this->map_width_meters/2);
+			p1.y = scale * (p1.y + this->map_height_meters/2);
 			cv::Point2d tl = cv::Point2d(p1.x - d, p1.y + d);
 			char text[10];
 			sprintf(text, "%i", i);
@@ -727,14 +780,14 @@ void World::display_world(const int &ms) {
 	cv::Mat temp = this->PRM_Mat.clone();
 	cv::Mat map = cv::Mat::zeros(cv::Size(int(des_x), int(des_y) + 100), CV_8UC3);
 	temp.copyTo(map(cv::Rect(0, 0, temp.cols, temp.rows)));
-
 	
 	// draw active tasks
 	for (int i = 0; i < this->n_nodes; i++) {
 		if (this->nodes[i]->is_active()) {
 			double d = 15.0;
 			cv::Point2d p1 = this->nodes[i]->get_loc();
-			p1.x = scale_x * (p1.x + this->map_width/2); p1.y = scale_y * (p1.y + this->map_height/2);
+			p1.x = scale * (p1.x + this->map_width_meters/2);
+			p1.y = scale * (p1.y + this->map_height_meters/2);
 			cv::Point2d tl = cv::Point2d(p1.x - d, p1.y + d);
 			cv::Point2d br = cv::Point2d(p1.x + d, p1.y - d);
 			cv::rectangle(map, cv::Rect(tl, br), this->nodes[i]->get_color(), -1);
@@ -745,21 +798,23 @@ void World::display_world(const int &ms) {
 	for (int i = 0; i < this->n_agents; i++) {
 		// draw their location
 		cv::Point2d p1(this->agents[i]->get_pose()->get_x(), this->agents[i]->get_pose()->get_y());
-		p1.x = scale_x * (p1.x + this->map_width/2); p1.y = scale_y * (p1.y + this->map_height/2);
+		p1.x = scale * (p1.x + this->map_width_meters/2); p1.y = scale * (p1.y + this->map_height_meters/2);
 		if(p1.x >= 0.0 && p1.x <= des_x && p1.y >= 0.0 && p1.y <= des_y){
 			cv::circle(map, p1, 8, this->agents[i]->get_color(), -1);
 		
 			// draw line to their edge x
 			if(this->agents[i]->get_edge_x() >= 0 && this->agents[i]->get_edge_x() <= this->n_nodes){		
 				cv::Point2d p2 = this->nodes[this->agents[i]->get_edge_x()]->get_loc();
-				p2.x = scale_x * (p2.x + this->map_width/2); p2.y = scale_y * (p2.y + this->map_height/2);
+				p2.x = scale * (p2.x + this->map_width_meters/2);
+				p2.y = scale * (p2.y + this->map_height_meters/2);
 				cv::line(map, p1, p2, this->agents[i]->get_color(), 2);
 			}
 			
 			// draw line to their edge y
 			if(this->agents[i]->get_edge_y() >= 0 && this->agents[i]->get_edge_y() <= this->n_nodes){
 				cv::Point2d p3 = this->nodes[this->agents[i]->get_edge_y()]->get_loc();
-				p3.x = scale_x * (p3.x + this->map_width/2); p3.y = scale_y * (p3.y + this->map_height/2);
+				p3.x = scale * (p3.x + this->map_width_meters/2);
+				p3.y = scale * (p3.y + this->map_height_meters/2);
 				cv::line(map, p1, p3, this->agents[i]->get_color(), 2);
 			}
 
@@ -771,10 +826,11 @@ void World::display_world(const int &ms) {
 		std::vector<int> a_path = this->agents[i]->get_path();
 		if(a_path.size() > 0){
 			cv::Point p_loc = this->nodes[this->agents[i]->get_edge_y()]->get_loc();
-			p_loc.x = scale_x * (p_loc.x + this->map_width/2); p_loc.y = scale_y * (p_loc.y + this->map_height/2);
+			p_loc.x = scale * (p_loc.x + this->map_width_meters/2); p_loc.y = scale * (p_loc.y + this->map_height_meters/2);
 			for(size_t j=1; j<a_path.size(); j++){
 				cv::Point p_cur = this->nodes[a_path[j]]->get_loc();
-				p_cur.x = scale_x * (p_cur.x + this->map_width/2); p_cur.y = scale_y * (p_cur.y + this->map_height/2);
+				p_cur.x = scale * (p_cur.x + this->map_width_meters/2);
+				p_cur.y = scale * (p_cur.y + this->map_height_meters/2);
 				cv::Point p1(p_cur.x - 10*i, p_cur.y - 10*i);
 				cv::Point p2(p_loc.x - 10*i, p_loc.y - 10*i);
 
@@ -782,7 +838,6 @@ void World::display_world(const int &ms) {
 				p_loc = p_cur;
 			}
 		}
-	
 	}
 	
 	cv::putText(map, this->task_selection_method, cv::Point2d(40.0, des_y + 30.0), CV_FONT_HERSHEY_COMPLEX, 1.0, white, 3);
@@ -795,8 +850,8 @@ void World::display_world(const int &ms) {
 	cv::putText(map, map_name, cv::Point2d(500.0, des_y + 80), CV_FONT_HERSHEY_COMPLEX, 1.0, white, 3);
 	
 	double current_plot_time = 1000.0 * clock() / double(CLOCKS_PER_SEC);
-	cv::namedWindow("Map World", cv::WINDOW_NORMAL);
-	cv::imshow("Map World", map);
+	cv::namedWindow("DMCTS_World::Map World", cv::WINDOW_NORMAL);
+	cv::imshow("DMCTS_World::Map World", map);
 	if (ms == 0) {
 		cv::waitKey(0);
 	}
@@ -878,17 +933,9 @@ void World::initialize_PRM() {
 			double d;
 			if (this->dist_between_nodes(i, j, d)) {
 				if (d < this->k_connection_radius && rand() < this->p_connect) { // am I close enough?
-					double obs_cost = d;
-					
-					if (this->rand_double_in_range(0.0, 1.0) < this->p_obstacle_on_edge) { // does travel type two pay obstacle cost?
-						if (this->rand_double_in_range(0.0, 1.0) < this->p_blocked_edge) { // does travel type two get blocked from using edge
-							obs_cost = double(INFINITY);
-						}
-						else { // pay obstacle costs
-							obs_cost = d*(1 + this->rand_double_in_range(0.0, 1.0));
-						}
-					}
+	
 					// set normal nbr and travel
+					double obs_cost = this->find_obstacle_costs(i,j,d);
 					this->nodes[i]->add_nbr(j, d, obs_cost);
 					this->nodes[j]->add_nbr(i, d, obs_cost);
 					this->travel_distances.at<float>(i,j) = d;
@@ -932,24 +979,7 @@ void World::initialize_PRM() {
 			//cv::imshow("obstacles", this->Obs_Mat);
 			//cv::waitKey(100);
 
-			// get node[i]'s location on the img
-			cv::Point me = this->nodes[i]->get_loc();
-			me.x += this->map_width/2;
-			me.y += this->map_height/2;
-			// get their location
-			cv::Point np = this->nodes[mindex]->get_loc();
-			np.x += this->map_width/2;
-			np.y += this->map_height/2;
-			// get a line iterator from me to them
-			cv::LineIterator lit(this->Obs_Mat, me, np);
-			double val_sum = 0.0;
-			// count every obstacles cell between me and them!
-			for (int i = 0; i < lit.count; i++, ++lit) {
-				// count along line
-				val_sum += double(this->Obs_Mat.at<uchar>(lit.pos()))/255.0;
-			}
-			double mean_val = val_sum / double(lit.count);
-			double obs_cost = min_dist + 3.14159*mean_val;
+			double obs_cost = this->find_obstacle_costs(i,mindex, min_dist);
 			this->nodes[i]->add_nbr(mindex, min_dist, obs_cost);
 			this->nodes[mindex]->add_nbr(i, min_dist, obs_cost);
 			this->travel_distances.at<float>(i,mindex) = min_dist;
@@ -1004,6 +1034,28 @@ void World::initialize_PRM() {
 		std::cout << std::endl;
 	}
 	*/
+}
+
+double World::find_obstacle_costs(const int &i, const int &j, const double &free_dist){
+	// get node[i]'s location on the img
+	cv::Point me = this->nodes[i]->get_loc();
+	me.x += this->map_width_meters/2;
+	me.y += this->map_height_meters/2;
+	// get their location
+	cv::Point np = this->nodes[j]->get_loc();
+	np.x += this->map_width_meters/2;
+	np.y += this->map_height_meters/2;
+	// get a line iterator from me to them
+	cv::LineIterator lit(this->Obs_Mat, me, np);
+	double val_sum = 0.0;
+	// count every obstacles cell between me and them!
+	for (int i = 0; i < lit.count; i++, ++lit) {
+		// count along line
+		val_sum += double(this->Obs_Mat.at<uchar>(lit.pos()))/255.0;
+	}
+	double mean_val = val_sum / double(lit.count);
+	double obs_cost = free_dist + (free_dist*mean_val*this->obstacle_increase);
+	return obs_cost;
 }
 
 double World::rand_double_in_range(const double &min, const double &max) {
@@ -1100,23 +1152,20 @@ void World::initialize_nodes_and_tasks() {
 		this->nodes.push_back(n);
 	}
 
-
-	int i = int(this->nodes.size());
-	while(i < this->n_nodes) {
+	for(int i=int(this->nodes.size()); i < this->n_nodes; i++) {
 		bool flag = true;
 
 		while(flag){
-			x = this->rand_double_in_range(-this->map_width/2.1, this->map_width/2.1);
-			y = this->rand_double_in_range(-this->map_height/2.1, this->map_height/2.1);
+			x = this->rand_double_in_range(-this->map_width_meters/2.1, this->map_width_meters/2.1);
+			y = this->rand_double_in_range(-this->map_height_meters/2.1, this->map_height_meters/2.1);
 
-			if(this->Obs_Mat.at<uchar>(cv::Point(x + this->map_width/2,y+this->map_height/2)) == 0){
+			if(this->Obs_Mat.at<uchar>(cv::Point(x + this->map_width_meters/2,y+this->map_height_meters/2)) <= 50){
 				flag = false;
 			}
 		}
 		int task_type = rand() % n_task_types;
 		Map_Node* n = new Map_Node(x, y, i, this->p_task_initially_active, task_type, task_work_by_agent[task_type], task_colors[task_type], this->flat_tasks, this);
 		this->nodes.push_back(n);
-		i++;
 	}
 }
 
@@ -1258,17 +1307,39 @@ bool World::get_index(const std::vector<int> &vals, const int &key, int &index) 
 	return false;
 }
 
+double World::get_global_distance(const double &lata, const double &lona, const double &latb, const double &lonb){
+	double R = 6378136.6; // radius of the earth in meters
+
+	double lat1 = this->to_radians(lata);
+	double lon1 = this->to_radians(lona);
+	double lat2 = this->to_radians(latb);
+	double lon2 = this->to_radians(lonb);
+
+	double dlon = lon2 - lon1;
+	double dlat = lat2 - lat1;
+
+	double a = pow(sin(dlat / 2), 2) + cos(lat1) * cos(lat2) * pow(sin(dlon / 2), 2);
+	double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+	double distance = R * c; // in meters
+	return distance;
+}
+
+double World::to_radians(const double &deg){
+	return deg*0.017453292519943;
+}
+
 
 
 /**************** RETIRED FUNCTIONS *************************************
 void World::create_random_obstacles() {
-this->obstacle_mat = cv::Mat::zeros(int(this->map_width), int(this->map_height), CV_8UC3);
+this->obstacle_mat = cv::Mat::zeros(int(this->map_width_meters), int(this->map_height_meters), CV_8UC3);
 
 for (int i = 0; i < this->n_obstacles; i++) {
 int r = (rand() %  (this->max_obstacle_radius - this->min_obstacles_radius)) + this->min_obstacles_radius;
 cv::Point c;
-c.x = rand() % int(this->map_width);
-c.y = rand() % int(this->map_height);
+c.x = rand() % int(this->map_width_meters);
+c.y = rand() % int(this->map_height_meters);
 cv::circle(this->obstacle_mat, c, r, cv::Vec3b(0,0,100), -1);
 }
 }

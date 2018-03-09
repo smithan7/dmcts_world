@@ -1,0 +1,9 @@
+north_lat: 44.565683
+south_lat: 44.564965
+east_lon: -123.270456
+west_lon: -123.272974
+test_obstacle_img: /home/andy/catkin_ws/src/dmcts_world/bash_launch_scripts/hardware_imgs/osu_obstacles.png
+test_environment_img: /home/andy/catkin_ws/src/dmcts_world/bash_launch_scripts/hardware_imgs/osu_field.png
+meters_per_cell: 0.2
+inflation_iters: 10
+obstacle_increase: 5.0
