@@ -6,12 +6,14 @@ param=$3
 coord_method=$4
 p_task_initially_active=$5
 score_run=true
-gazebo_obstacles=true
+gazebo_obstacles=false
 cruising_speed=1.0
 use_xbee=false
-end_time=120.0
-way_point_tol=5.0
+end_time=12000.0
+way_point_tol=1.0
 use_hector_quad=true
+world_display_map=true
+agent_display_map=false
  
 my_pid=$$
 echo "My process ID is $my_pid"
@@ -41,14 +43,15 @@ sleep 5s
 declare -a xs=(-25 25 -25 25 25 0 0 -25);
 declare -a ys=(-25 25 25 -25 0 25 -25 0);
 declare -a zs=(5 7.5 10 12.5 15 17.5 20 22.5);
-declare -a cs=(5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0);
-declare -a pay_obs_costs=(false false false false false false false false);
+declare -a cs=(3.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0);
+declare -a pay_obs_costs=(true true false false false false false false);
 
 # Load specific stuff for this trial
 echo "Loading ROS params"
-rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
+#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/park_params.yaml"
-#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
+#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/willamette_park_params.yaml"
+rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/dmcts_params.yaml"
 rosparam set "/param_number" $param
 rosparam set "/end_time" $end_time
@@ -81,8 +84,8 @@ done
 echo "launching dmcts quad nodes"
 for ((ai=0; ai<n_agents; ai++))
 do
-    roslaunch dmcts dmcts_n.launch agent_index:=$ai desired_altitude:=${zs[ai]} pay_obstacle_costs:=${pay_obs_costs[ai]} cruising_speed:=${cruising_speed[ai]} use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad &
-    pid="$pid $!"
+    roslaunch dmcts dmcts_n.launch agent_index:=$ai desired_altitude:=${zs[ai]} pay_obstacle_costs:=${pay_obs_costs[ai]} cruising_speed:=${cs[ai]} use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad &
+    pid="$pid $!" 
     sleep 5s
 done
 

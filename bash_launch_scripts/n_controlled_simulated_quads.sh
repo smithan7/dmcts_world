@@ -10,7 +10,7 @@ gazebo_obstacles=false
 cruising_speed=1.0
 use_xbee=false
 end_time=120.0
-way_point_tol=5.0
+way_point_tol=0.1
 use_hector_quad=false
 world_display_map=true
 agent_display_map=false
@@ -43,9 +43,9 @@ declare -a pay_obs_costs=(false false false false false false false false);
 
 # Load specific stuff for this trial
 echo "Loading ROS params"
-#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
+rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/park_params.yaml"
-rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
+#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/dmcts_params.yaml"
 rosparam set "/param_number" $param
 rosparam set "/end_time" $end_time

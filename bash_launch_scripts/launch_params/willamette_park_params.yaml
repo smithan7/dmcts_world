@@ -1,0 +1,9 @@
+north_lat: 44.539546
+south_lat: 44.538425
+east_lon: -123.248111
+west_lon: -123.250662
+test_obstacle_img: /home/andy/catkin_ws/src/dmcts_world/bash_launch_scripts/hardware_imgs/willamette_park.png
+test_environment_img: /home/andy/catkin_ws/src/dmcts_world/bash_launch_scripts/hardware_imgs/willamette_park.png
+meters_per_cell: 0.2
+inflation_iters: 10
+obstacle_increase: 5.0

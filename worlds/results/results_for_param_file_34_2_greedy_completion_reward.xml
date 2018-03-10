@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<task_selection_method>greedy_completion_reward</task_selection_method>
+<param>34</param>
+<num_agents>2</num_agents>
+<num_nodes>20</num_nodes>
+<reward>
+  3.2792842765193768e+02 2.7524098058539550e+02 2.0965463622388322e+02
+  2.6915410518049373e+02</reward>
+<time>
+  9.3500134944915771e+00 1.3919398307800293e+01 2.5121056795120239e+01
+  2.8590477943420410e+01</time>
+<cumulative_reward>1.0819781496417102e+03</cumulative_reward>
+</opencv_storage>
