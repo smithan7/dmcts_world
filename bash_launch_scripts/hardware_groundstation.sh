@@ -1,10 +1,11 @@
 #!/bin/bash
 
-n_agents=$1
-n_nodes=$2
-param=$3
-coord_method=$4
-p_task_initially_active=$5
+param=$1
+coord_method=$2
+
+n_agents=3
+n_nodes=100
+p_task_initially_active=0.4
 score_run=true
 gazebo_obstacles=false
 use_gazebo=false
@@ -15,7 +16,7 @@ way_point_tol=1.0
 use_hector_quad=true
 world_display_map=true
 agent_display_map=false
-hardware_trial=false # more, is this a search and resuce mission
+hardware_trial=false # more, is this a search and rescue mission
 flat_tasks=false
 speed_penalty=0.5
  
@@ -37,20 +38,6 @@ echo "Launching roscore..."
 roscore &
 pid="pid $!"
 sleep 5s
-
-echo "Launching Gazebo..."
-roslaunch gazebo_ros empty_world.launch &
-pid="$pid $!"
-sleep 5s
-
-# Declare starting locations and info for 6 agents
-# effectively: low, high, low, high, low, high, low, high
-declare -a xs=(-25.0 25.0 -25.0 025.0 25.0 0.00 000.0 -25.0)
-declare -a ys=(-25.0 25.0 025.0 -25.0 00.0 25.0 -25.0 000.0)
-declare -a zs=(005.0 20.0 007.5 022.5 10.0 25.0 010.0 027.5)
-declare -a cs=(002.5 05.0 002.5 005.0 02.5 05.0 002.5 005.0)
-declare -a agent_types=(0 1 0 1 0 1 0 1)
-declare -a pay_obs_costs=(true false true false true false true false);
 
 # Load specific stuff for this trial
 echo "Loading ROS params"
@@ -77,26 +64,10 @@ rosparam set "/speed_penalty" $speed_penalty
 echo "Loaded ROS params"
 sleep 2s
 
-echo "launching hector quadrotors"
-for ((ai=0; ai<n_agents; ai++))
-do
-    roslaunch hector_quadrotor_gazebo spawn_n_quadrotor.launch agent_index:=$ai x_start:=${xs[ai]} y_start:=${ys[ai]} &
-    pid="$pid $!"
-    sleep 5s
-done 
-
 #echo "launching rviz"
 #rviz &
 #pid="$pid $!"
 #sleep 10s
-
-echo "launching dmcts quad nodes"
-for ((ai=0; ai<n_agents; ai++))
-do
-    roslaunch dmcts dmcts_n.launch agent_index:=$ai desired_altitude:=${zs[ai]} pay_obstacle_costs:=${pay_obs_costs[ai]} cruising_speed:=${cs[ai]} use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad agent_type:=${agent_types[ai]} &
-    pid="$pid $!" 
-    sleep 5s
-done
 
 echo "launching dmcts_world_node"
 roslaunch dmcts_world dmcts_world.launch use_xbee:=$use_xbee

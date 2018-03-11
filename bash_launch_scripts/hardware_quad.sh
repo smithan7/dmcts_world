@@ -1,9 +1,10 @@
 #!/bin/bash
 
-n_nodes=$1
-param=$2
-coord_method=$3
-p_task_initially_active=$4
+param=$1
+coord_method=$2
+
+n_nodes=100
+p_task_initially_active=0.4
 n_agents=3
 agent_index=0
 score_run=true
@@ -16,7 +17,7 @@ way_point_tol=1.0
 use_hector_quad=true
 world_display_map=true
 agent_display_map=false
-hardware_trial=false # more, is this a search and resuce mission
+hardware_trial=false # more, is this a search and rescue mission
 flat_tasks=false
 speed_penalty=0.5
 
@@ -73,6 +74,6 @@ rosparam set "/speed_penalty" $speed_penalty
 echo "Loaded ROS params"
 sleep 2s
 
-roslaunch dmcts dmcts_n.launch agent_index:=$agent_index desired_altitude:=${zs[agent_index]} pay_obstacle_costs:=${pay_obs_costs[ai]} cruising_speed:=${cs[agent_index]} use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad agent_type:=${agent_types[agent_index]} &
+roslaunch dmcts dmcts_n.launch agent_index:=$agent_index desired_altitude:=${zs[agent_index]} pay_obstacle_costs:=${pay_obs_costs[ai]} cruising_speed:=${cs[agent_index]} use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad agent_type:=${agent_types[agent_index]}
 pid="$pid $!" 
 sleep 5s
