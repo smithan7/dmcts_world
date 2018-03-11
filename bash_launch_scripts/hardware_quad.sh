@@ -74,6 +74,12 @@ rosparam set "/speed_penalty" $speed_penalty
 echo "Loaded ROS params"
 sleep 2s
 
-roslaunch dmcts dmcts_n.launch agent_index:=$agent_index desired_altitude:=${zs[agent_index]} pay_obstacle_costs:=${pay_obs_costs[ai]} cruising_speed:=${cs[agent_index]} use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad agent_type:=${agent_types[agent_index]}
+
+echo "Launching DJI-SDK"
+roslaunch dji_sdk sdk_manifold.launch &
+echo "Launched DJI-SDK"
+sleep 2s
+
+roslaunch dmcts dmcts_dji.launch agent_index:=$agent_index desired_altitude:=${zs[agent_index]} pay_obstacle_costs:=${pay_obs_costs[ai]} cruising_speed:=${cs[agent_index]} use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad agent_type:=${agent_types[agent_index]}
 pid="$pid $!" 
 sleep 5s
