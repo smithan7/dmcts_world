@@ -102,7 +102,7 @@ public:
 
 private:
 	double north_lat, south_lat, east_lon, west_lon;
-	bool use_gazebo_obstacles;
+	bool use_gazebo_obstacles, use_gazebo, hardware_trial;
     std::string test_environment_img, test_obstacle_img;
 	std::vector<double> max_task_rewards, min_task_rewards;
 	std::vector<double> max_task_times, min_task_times;

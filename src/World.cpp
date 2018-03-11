@@ -30,6 +30,7 @@ World::World(ros::NodeHandle nHandle) {
 	ros::param::get("/coord_method", this->task_selection_method);
 	ros::param::get("/number_of_nodes", this->n_nodes);
 	ros::param::get("/use_gazebo_obstacles", this->use_gazebo_obstacles);
+	ros::param::get("/use_gazebo", this->use_gazebo);
 	ros::param::get("/p_task_initially_active", p_task_initially_active);
 	ros::param::get("/end_time", end_time);
 	ros::param::get("/north_lat", this->north_lat);
@@ -38,6 +39,10 @@ World::World(ros::NodeHandle nHandle) {
 	ros::param::get("/west_lon", this->west_lon);
 	ros::param::get("/inflation_iters", this->inflation_iters);
 	ros::param::get("/obstacle_increase", this->obstacle_increase);
+	ros::param::get("/hardware_trial", this->hardware_trial);
+	ros::param::get("/flat_tasks", this->flat_tasks);
+	ros::param::get("/n_task_types", this->n_task_types);
+	ros::param::get("/n_agent_types", this->n_agent_types);
    	
 	ROS_INFO("World::initializing world");
 	ROS_INFO("   test_environment_img %s", this->test_environment_img.c_str());
@@ -50,6 +55,7 @@ World::World(ros::NodeHandle nHandle) {
 	ROS_INFO("   coord_method %s", this->task_selection_method.c_str());
 	ROS_INFO("   n_nodes %i", this->n_nodes);
 	ROS_INFO("   use_gazebo_obstacles %i", this->use_gazebo_obstacles);
+	ROS_INFO("   use_gazebo %i", this->use_gazebo);
 	ROS_INFO("   p_task_initially_active %0.4f", this->p_task_initially_active);
 	ROS_INFO("   end_time %0.2f", this->end_time);
     ROS_INFO("   north_lat %0.6f", this->north_lat);
@@ -58,11 +64,15 @@ World::World(ros::NodeHandle nHandle) {
 	ROS_INFO("   east_lon %0.6f", this->east_lon);
 	ROS_INFO("   inflation_iters %i", this->inflation_iters);
 	ROS_INFO("   obstacle_increase %0.2f", this->obstacle_increase);
+	ROS_INFO("   hardware_trial %i", this->hardware_trial);
+	ROS_INFO("   flat_tasks %i", this->flat_tasks);
+	ROS_INFO("   n_task_types %i", this->n_task_types);
+	ROS_INFO("   n_agent_types %i", this->n_agent_types);
+
 
 	this->initialized = false;
 	this->initialized_clock = false;
 
-	this->flat_tasks = false;
 	this->start_time = -1.0;
 	this->end_time = end_time;
 
@@ -97,46 +107,52 @@ World::World(ros::NodeHandle nHandle) {
 	// map and PRM stuff
 	this->map_width_meters = this->get_global_distance(this->north_lat, this->west_lon, this->north_lat, this->east_lon);
 	this->map_height_meters = this->get_global_distance(this->north_lat, this->west_lon, this->south_lat, this->west_lon);
-	ROS_INFO("    map size: %0.2f, %0.2f (meters)", this->map_width_meters, this->map_height_meters);
+
+	if(this->use_gazebo){
+		if(this->map_width_meters > this->map_height_meters){
+			this->map_height_meters = 90.0 * this->map_height_meters / this->map_width_meters;
+			this->map_width_meters = 90.0;
+		}
+		else{
+			this->map_width_meters = 90.0 * this->map_width_meters / this->map_height_meters;
+			this->map_height_meters = 90.0;
+		}
+	}
 
 	ROS_INFO("DMCTS_world_node::Word::World(): map size: %0.2f, %0.2f (meters)", this->map_width_meters, this->map_height_meters);
 	this->n_obstacles = 10;
 	this->k_map_connections = 5;
-	this->k_connection_radius = 500.0;
+	this->k_connection_radius = 10.0;
 	this->p_connect = 1.0;
 	this->p_blocked_edge = 0.05;
 	this->p_obstacle_on_edge = 0.2;
 	this->p_pay_obstacle_cost = 0.0;
 	
 	// task stuff
-	this->n_task_types = 4; // how many types of tasks are there
 	this->p_impossible_task = 0.0; // how likely is it that an agent is created that cannot complete a task
 	this->p_activate_task = 0.0;// 1.0*this->dt; // how likely is it that I will activate a task each second? *dt accounts per iters per second
 	this->min_task_time = 1000.0; // shortest time to complete a task
 	this->max_task_time = 6000.0; // longest time to complete a task
-	this->min_task_work = 1.0; // min work to complete a task
-	this->max_task_work = 1.0; // max work to complete a task
-	this->min_task_reward = 100.0; // min reward for completing a task
-	this->max_task_reward = 500.0; // max reward for completing a task
+	this->min_task_work = 1.0;
+	this->max_task_work = 1.0;
+	this->min_task_reward = 100.0;
+	this->max_task_reward = 500.0;
 
 	// agent stuff
-	// set through param this->n_agents = 2; // how many agents
-	this->n_agent_types = 1; // how many types of agents
 	this->min_travel_vel = 2.3; // 5 - slowest travel speed
 	this->max_travel_vel = 2.7; // 25 - fastest travel speed
 	this->min_agent_work = 100.0; // min amount of work an agent does per second
 	this->max_agent_work = 100.0; // max amount of work an agent does per second
 
 	// agent starting locations
-	this->starting_locs.push_back(cv::Point2d(-25,-25));
-	this->starting_locs.push_back(cv::Point2d(25,25));
-	this->starting_locs.push_back(cv::Point2d(-25,25));
-	this->starting_locs.push_back(cv::Point2d(25,-25));
-	this->starting_locs.push_back(cv::Point2d(0,25));
-	this->starting_locs.push_back(cv::Point2d(25,0));
-	this->starting_locs.push_back(cv::Point2d(0,-25));
-	this->starting_locs.push_back(cv::Point2d(-25,0));
-
+	this->starting_locs.push_back(cv::Point2d(-15,-15));
+	this->starting_locs.push_back(cv::Point2d(15,15));
+	this->starting_locs.push_back(cv::Point2d(-15,15));
+	this->starting_locs.push_back(cv::Point2d(15,-15));
+	this->starting_locs.push_back(cv::Point2d(0,15));
+	this->starting_locs.push_back(cv::Point2d(15,0));
+	this->starting_locs.push_back(cv::Point2d(0,-15));
+	this->starting_locs.push_back(cv::Point2d(-15,0));
 	// reset randomization
 	srand(this->rand_seed);
 
@@ -151,17 +167,17 @@ World::World(ros::NodeHandle nHandle) {
 		cv::blur(this->Obs_Mat,s,cv::Size(5,5));
 		cv::max(this->Obs_Mat,s,this->Obs_Mat);
 	}
-	
-	// write params
-	this->write_params();
 
 	// reset randomization
 	srand(this->rand_seed);
-
 	// initialize map, tasks, and agents
 	this->initialize_nodes_and_tasks();
+	// reset randomization
+	srand(this->rand_seed);
 	this->initialize_PRM();
 	// initialize agents
+	// reset randomization
+	srand(this->rand_seed);
 	this->initialize_agents(nHandle);
 	this->initialized = true;
 
@@ -867,32 +883,11 @@ void World::display_world(const int &ms) {
 
 void World::initialize_agents(ros::NodeHandle nHandle) {
 
-	std::string rf;
-	rf.append(this->world_directory);
-	rf.append("/param_files/");
-	char temp[200];
-	int n = sprintf(temp, "param_file_%i.xml", param_file_index);
-	rf.append(temp);
-	cv::FileStorage fs;
-	fs.open(rf, cv::FileStorage::READ);
+	int a_tp = 0;
+	double tv = 2.0;
+	bool oc = true;
+	double wr = 5.0;
 
-	std::vector<double> agent_travel_vels;
-	//fs["agent_travel_vels"] >> agent_travel_vels;
-	std::vector<bool> agent_obstacle_costs;
-	//fs["agent_obstacle_costs"] >> agent_obstacle_costs;
-	std::vector<double> agent_work_radii;
-	//fs["agent_work_radii"] >> agent_work_radii;
-	std::vector<int> agent_types;
-	//fs["agent_types"] >> agent_types;
-	for(int i=0; i<this->n_agents; i++){
-		agent_types.push_back(0);
-	}
-
-	for (int i = 0; i < this->n_agent_types; i++) {
-		agent_travel_vels.push_back(2.0);
-		agent_obstacle_costs.push_back(true);
-		agent_work_radii.push_back(5.0);
-	}
 	this->agent_status.clear();
 
 	std::vector<cv::Scalar> agent_colors;
@@ -912,8 +907,7 @@ void World::initialize_agents(ros::NodeHandle nHandle) {
 
 	for (int i = 0; i < this->n_agents; i++) {
 		this->agent_status.push_back(-1);
-		int tp = agent_types[i];
-		Agent* a = new Agent(nHandle, i, tp, agent_travel_vels[tp], agent_colors[i % int(agent_colors.size())], agent_obstacle_costs[tp], agent_work_radii[tp], this);
+		Agent* a = new Agent(nHandle, i, a_tp, tv, agent_colors[i % int(agent_colors.size())], oc, wr, this);
 		this->agents.push_back(a);
 	}
 }
@@ -1134,12 +1128,28 @@ void World::initialize_nodes_and_tasks() {
 
 		// set task times
 		std::vector<double> at;
-		for (int a = 0; a < this->n_agent_types; a++) {
-			if (this->rand_double_in_range(0.0, 1.0) < this->p_impossible_task) {
-				at.push_back(double(INFINITY));
+		if(this->hardware_trial){ // for search and rescue
+			if(t==0){
+				// open field task
+				at.push_back(1000000.0);
+				at.push_back(1000000.0);
+
 			}
-			else {
-				at.push_back(this->rand_double_in_range(this->min_agent_work, this->max_agent_work));
+			else{
+				// obstacle task
+				at.push_back(1000000.0); // low flying agents can see
+				at.push_back(0.0); // high flying agents can not
+			}
+		}
+		else{
+			// random trials
+			for (int a = 0; a < this->n_agent_types; a++) {
+				if (this->rand_double_in_range(0.0, 1.0) < this->p_impossible_task) {
+					at.push_back(double(INFINITY));
+				}
+				else {
+					at.push_back(this->rand_double_in_range(this->min_agent_work, this->max_agent_work));
+				}
 			}
 		}
 		task_work_by_agent.push_back(at);
@@ -1152,6 +1162,11 @@ void World::initialize_nodes_and_tasks() {
 		this->nodes.push_back(n);
 	}
 
+	int obs_threshold = 50;
+	if(this->hardware_trial){
+		obs_threshold = 255;
+	}
+
 	for(int i=int(this->nodes.size()); i < this->n_nodes; i++) {
 		bool flag = true;
 
@@ -1159,11 +1174,20 @@ void World::initialize_nodes_and_tasks() {
 			x = this->rand_double_in_range(-this->map_width_meters/2.1, this->map_width_meters/2.1);
 			y = this->rand_double_in_range(-this->map_height_meters/2.1, this->map_height_meters/2.1);
 
-			if(this->Obs_Mat.at<uchar>(cv::Point(x + this->map_width_meters/2,y+this->map_height_meters/2)) <= 50){
+			if(this->Obs_Mat.at<uchar>(cv::Point(x + this->map_width_meters/2,y+this->map_height_meters/2)) <= obs_threshold){
 				flag = false;
 			}
 		}
+
 		int task_type = rand() % n_task_types;
+		if(this->hardware_trial){
+			if(this->Obs_Mat.at<uchar>(cv::Point(x + this->map_width_meters/2,y+this->map_height_meters/2)) <= 50){
+				task_type = 0; // open field task
+			}
+			else{
+				task_type = 1; // obstacle task
+			}
+		}
 		Map_Node* n = new Map_Node(x, y, i, this->p_task_initially_active, task_type, task_work_by_agent[task_type], task_colors[task_type], this->flat_tasks, this);
 		this->nodes.push_back(n);
 	}

@@ -6,12 +6,12 @@ import os
 
 if __name__ == '__main__':
 
-    num_agent_set = [3]#[2,3,5,7]
-    p_active_set = [0.25]#[0.25, 0.25, 0.4, 0.5, 0.7]
+    num_agent_set = [5]#[2,3,5,7]
+    p_active_set = [0.75]#[0.25, 0.25, 0.4, 0.5, 0.7]
     num_nodes = 100
     coord_type_set = ['"mcts_task_by_completion_reward_gradient"', '"greedy_completion_reward"']
 
-    use_gazebo = True
+    use_gazebo = False
     maps_per_round = 1
 
     for ai in range(0,len(num_agent_set)):
@@ -57,9 +57,9 @@ if __name__ == '__main__':
                 print("test_values: " + str(temp_param[0:-1]))
                 
                 if use_gazebo:
-                    command = '/home/andy/catkin_ws/src/dmcts_world/bash_launch_scripts/n_controlled_quads.sh ' + str(num_agents) + ' ' + str(num_nodes) + ' ' + str(iter) + ' ' + coord_type + ' ' + str(p_active)
+                    command = '/home/andy/catkin_ws/src/dmcts_world/bash_launch_scripts/n_controlled_gazebo_quads.sh ' + str(num_agents) + ' ' + str(num_nodes) + ' ' + str(iter) + ' ' + coord_type + ' ' + str(p_active)
                 else:
-                    command = '/home/andy/catkin_ws/src/dmcts_world/bash_launch_scripts/n_controlled_fake_quads_params.sh ' + str(num_agents) + ' ' + str(num_nodes) + ' ' + str(iter) + ' ' + coord_type + ' ' + str(p_active)
+                    command = '/home/andy/catkin_ws/src/dmcts_world/bash_launch_scripts/n_controlled_simulated_quads.sh ' + str(num_agents) + ' ' + str(num_nodes) + ' ' + str(iter) + ' ' + coord_type + ' ' + str(p_active)
                     #command = '/home/andy/catkin_ws/src/dmcts_world/bash_launch_scripts/n_controlled_fake_quads_params.sh 2 100 ' + str(iter) + ' "greedy_completion_reward" 0.25'
                 
                 for t in temp_param: ## add the params to the command
