@@ -16,7 +16,7 @@ end_time=120.0
 way_point_tol=1.0
 use_hector_quad=true
 world_display_map=true
-agent_display_map=false
+agent_display_map=true
 hardware_trial=false # more, is this a search and rescue mission
 flat_tasks=false
 speed_penalty=0.5
@@ -71,6 +71,8 @@ rosparam set "/use_gazebo" $use_gazebo
 rosparam set "/hardware_trial" $hardware_trial
 rosparam set "/flat_tasks" $flat_tasks
 rosparam set "/speed_penalty" $speed_penalty
+rosparam set "/n_task_types" 2
+rosparam set "/n_agent_types" 2
 echo "Loaded ROS params"
 sleep 2s
 

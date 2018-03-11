@@ -61,6 +61,8 @@ rosparam set "/use_gazebo" $use_gazebo
 rosparam set "/hardware_trial" $hardware_trial
 rosparam set "/flat_tasks" $flat_tasks
 rosparam set "/speed_penalty" $speed_penalty
+rosparam set "/n_task_types" 2
+rosparam set "/n_agent_types" 2
 echo "Loaded ROS params"
 sleep 2s
 
