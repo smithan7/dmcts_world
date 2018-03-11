@@ -3,7 +3,7 @@
 param=$1
 coord_method=$2
 
-n_agents=3
+n_agents=1
 n_nodes=100
 p_task_initially_active=0.4
 score_run=true

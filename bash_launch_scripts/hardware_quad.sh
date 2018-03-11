@@ -5,7 +5,7 @@ coord_method=$2
 
 n_nodes=100
 p_task_initially_active=0.4
-n_agents=3
+n_agents=1
 agent_index=0
 score_run=true
 gazebo_obstacles=false
@@ -34,6 +34,7 @@ echo "  way_point_tol: $way_point_tol"
 echo "Sourcing ~/catkin_ws/devel/setup.bash"
 source ~/catkin_ws/devel/setup.bash &
 pid=$!
+sleep 2s
 
 echo "Launching roscore..."
 roscore &
@@ -73,6 +74,9 @@ rosparam set "/flat_tasks" $flat_tasks
 rosparam set "/speed_penalty" $speed_penalty
 rosparam set "/n_task_types" 2
 rosparam set "/n_agent_types" 2
+rosparam set "/agent_index" $agent_index
+rosparam set "/desired_altitude" ${zs[agent_index]}
+rosparam set "/cruising_speed" ${cs[agent_index]}
 echo "Loaded ROS params"
 sleep 2s
 
@@ -80,8 +84,16 @@ sleep 2s
 echo "Launching DJI-SDK"
 roslaunch dji_sdk sdk_manifold.launch &
 echo "Launched DJI-SDK"
-sleep 2s
+sleep 5s
 
+echo "Launching my pid controller"
+    cd ~/catkin_ws
+    ./src/my_quad_controller/scripts/dji_waypoint_controller.py &
+    #.$(rospack find my_quad_controller)/scripts/dji_waypoint_controller.py &
+echo "Launched pid controller"
+sleep 5s
+
+echo "Launching Dist-MCTS Node"
 roslaunch dmcts dmcts_dji.launch agent_index:=$agent_index desired_altitude:=${zs[agent_index]} pay_obstacle_costs:=${pay_obs_costs[ai]} cruising_speed:=${cs[agent_index]} use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad agent_type:=${agent_types[agent_index]}
 pid="$pid $!" 
 sleep 5s
