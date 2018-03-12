@@ -3,10 +3,10 @@
 <task_selection_method>greedy_completion_reward</task_selection_method>
 <param>34</param>
 <num_agents>1</num_agents>
-<num_nodes>10</num_nodes>
+<num_nodes>100</num_nodes>
 <reward>
-  1.9281111168861389e+02</reward>
+  3.4670821974518731e+02</reward>
 <time>
-  7.1888883113861084e+00</time>
-<cumulative_reward>1.9281111168861389e+02</cumulative_reward>
+  3.1391154527664185e+01</time>
+<cumulative_reward>3.4670821974518731e+02</cumulative_reward>
 </opencv_storage>
