@@ -53,8 +53,8 @@ declare -a pay_obs_costs=(true false true false true false true false);
 # Load specific stuff for this trial
 echo "Loading ROS params"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
-#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/willamette_park_params.yaml"
-rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
+rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/willamette_park_params.yaml"
+#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/dmcts_params.yaml"
 rosparam set "/param_number" $param
 rosparam set "/end_time" $end_time
@@ -77,6 +77,7 @@ rosparam set "/n_agent_types" 2
 rosparam set "/agent_index" $agent_index
 rosparam set "/desired_altitude" ${zs[agent_index]}
 rosparam set "/cruising_speed" ${cs[agent_index]}
+rosparam set "/display_costmap_path" true
 echo "Loaded ROS params"
 sleep 2s
 
