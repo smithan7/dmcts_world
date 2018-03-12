@@ -44,6 +44,10 @@ World::World(ros::NodeHandle nHandle) {
 	ros::param::get("/n_task_types", this->n_task_types);
 	ros::param::get("/n_agent_types", this->n_agent_types);
    	
+   	this->test_obstacle_img = this->world_directory + this->test_obstacle_img;
+    this->test_environment_img = this->world_directory + this->test_environment_img;
+    this->world_directory = this->world_directory + "/worlds/";
+   	
 	ROS_INFO("World::initializing world");
 	ROS_INFO("   test_environment_img %s", this->test_environment_img.c_str());
 	ROS_INFO("   test_obstacle_img %s", this->test_obstacle_img.c_str());
@@ -62,6 +66,8 @@ World::World(ros::NodeHandle nHandle) {
 	ROS_INFO("   south_lat %0.6f", this->south_lat);
 	ROS_INFO("   west_lon %0.6f", this->west_lon);
 	ROS_INFO("   east_lon %0.6f", this->east_lon);
+	ROS_INFO("   origin_lat %0.6f", (this->north_lat + this->south_lat)/2.0);
+	ROS_INFO("   origin_lon %0.6f", (this->west_lon + this->east_lon)/2.0);
 	ROS_INFO("   inflation_iters %i", this->inflation_iters);
 	ROS_INFO("   obstacle_increase %0.2f", this->obstacle_increase);
 	ROS_INFO("   hardware_trial %i", this->hardware_trial);
@@ -104,9 +110,14 @@ World::World(ros::NodeHandle nHandle) {
 	this->c_time = 0.0;
 	this->dt = 1.0;
 
-	// map and PRM stuff
+	if(this->test_obstacle_img.empty()){
+    	this->map_width_meters = 100.0;
+	    this->map_height_meters = 100.0;
+	}
+	else{
 	this->map_width_meters = this->get_global_distance(this->north_lat, this->west_lon, this->north_lat, this->east_lon);
-	this->map_height_meters = this->get_global_distance(this->north_lat, this->west_lon, this->south_lat, this->west_lon);
+	    this->map_height_meters = this->get_global_distance(this->north_lat, this->west_lon, this->south_lat, this->west_lon);
+	}
 
 	if(this->use_gazebo){
 		if(this->map_width_meters > this->map_height_meters){
