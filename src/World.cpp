@@ -239,7 +239,10 @@ void World::seed_obs_mat(){
 		return;
 	}
 
+    cv::Mat temp;               // dst must be a different Mat
+    //cv::flip(temp_obs, temp, 1); 
 	cv::resize(temp_obs, this->Obs_Mat, this->Obs_Mat.size());
+	//cv::flip(temp_env, temp, 1);
 	cv::resize(temp_env, this->Env_Mat, this->Env_Mat.size());
 
 	//cv::namedWindow("DMCTS_World::World::seed_obs_mat:Obstacles", cv::WINDOW_NORMAL);
