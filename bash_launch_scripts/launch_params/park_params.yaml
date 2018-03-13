@@ -7,3 +7,5 @@ test_environment_img: bash_launch_scripts/hardware_imgs/park.png
 meters_per_cell: 0.2
 inflation_iters: 10
 obstacle_increase: 5.0
+start_xs: [-15.0, 15.0, -15.0, 15.0, 0.0, 15.0, 0.0, -15.0]
+start_ys: [-15.0, 15.0, 15.0, -15.0, 15.0, 0.0, -15.0, 0.0]
