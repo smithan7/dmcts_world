@@ -343,7 +343,7 @@ void World::request_work_callback(const custom_messages::DMCTS_Request_Work &msg
 	try{
 		if( this->nodes[msg.n_index] ){
 		    if( this->nodes[msg.n_index]->is_active() ){
-		        int a_type = this->agents[msg.a_index]->get_type();
+		        int a_type = msg.a_type;
 		        this->nodes[msg.n_index]->get_worked_on(a_type, this->c_time, work_done, reward_collected);
 			    this->reward_captured.push_back(reward_collected);
 			    this->reward_time.push_back(this->c_time);
