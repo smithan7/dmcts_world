@@ -162,19 +162,12 @@ World::World(ros::NodeHandle nHandle) {
 	this->starting_locs.push_back(cv::Point2d(15,0));
 	this->starting_locs.push_back(cv::Point2d(0,-15));
 	this->starting_locs.push_back(cv::Point2d(-15,0));
+	
 	// reset randomization
 	srand(this->rand_seed);
-	if(this->test_environment_img.empty()){
-		this->make_obs_mat(); // create random obstacles
-	}
-	else{
-		this->seed_obs_mat(); // seed into cells satelite information
-	}
-	cv::Mat s = cv::Mat::zeros(this->Obs_Mat.size(), CV_8UC1);
-	for(int i=0; i<this->inflation_iters; i++){
-		cv::blur(this->Obs_Mat,s,cv::Size(5,5));
-		cv::max(this->Obs_Mat,s,this->Obs_Mat);
-	}
+	this->get_obs_mat(); // create random / or load obstacles
+	ROS_INFO("DMCTS_world_node::   Word::World(): mat size: %i, %i (cells)", this->Obs_Mat.cols, this->Obs_Mat.rows);
+	
 	// reset randomization
 	srand(this->rand_seed);
 	// initialize map, tasks, and agents
@@ -222,7 +215,7 @@ void World::delete_gazebo_node_model(const int &i){
 		//rosservice call gazebo/delete_model '{model_name: coffee_cup}'
 }
 
-void World::seed_obs_mat(){
+void World::get_obs_mat(){
 
 	this->Obs_Mat = cv::Mat::zeros(cv::Size(int(this->map_width_meters), int(this->map_height_meters)), CV_8UC1);
 	this->Env_Mat = cv::Mat::zeros(cv::Size(int(this->map_width_meters), int(this->map_height_meters)), CV_8UC3);
@@ -235,22 +228,32 @@ void World::seed_obs_mat(){
 	//cv::waitKey(0);
 
 	if(!temp_obs.data || !temp_env.data){
-		ROS_ERROR("World::seed_img::Could NOT load img");
+		this->create_obs_mat();
+		ROS_WARN("World::seed_img::Could NOT load img, creating img");
 		return;
 	}
+	else{
+	    cv::Mat temp;               // dst must be a different Mat
+	    //cv::flip(temp_obs, temp, 1); 
+		cv::resize(temp_obs, this->Obs_Mat, this->Obs_Mat.size());
+		//cv::flip(temp_env, temp, 1);
+		cv::resize(temp_env, this->Env_Mat, this->Env_Mat.size());
+	}
 
-    cv::Mat temp;               // dst must be a different Mat
-    //cv::flip(temp_obs, temp, 1); 
-	cv::resize(temp_obs, this->Obs_Mat, this->Obs_Mat.size());
-	//cv::flip(temp_env, temp, 1);
-	cv::resize(temp_env, this->Env_Mat, this->Env_Mat.size());
+
+	cv::Mat s = cv::Mat::zeros(this->Obs_Mat.size(), CV_8UC1);
+	for(int i=0; i<this->inflation_iters; i++){
+		cv::blur(this->Obs_Mat,s,cv::Size(5,5));
+		cv::max(this->Obs_Mat,s,this->Obs_Mat);
+	}
 
 	//cv::namedWindow("DMCTS_World::World::seed_obs_mat:Obstacles", cv::WINDOW_NORMAL);
 	//cv::imshow("DMCTS_World::World::seed_obs_mat:Obstacles", this->Env_Mat);
 	//cv::waitKey(0);
 }
 
-void World::make_obs_mat(){
+void World::create_obs_mat(){
+
 	this->map_width_meters = 100.0;
 	this->map_height_meters = 100.0;
 	this->Obs_Mat = cv::Mat::zeros(cv::Size(int(this->map_width_meters), int(this->map_height_meters)), CV_8UC1);

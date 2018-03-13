@@ -142,8 +142,8 @@ private:
 	std::vector< std::vector<double> > obstacles;
 	double obstacle_increase;
 	double find_obstacle_costs(const int &i, const int &j, const double &free_dist);
-	void make_obs_mat();
-	void seed_obs_mat();
+	void create_obs_mat();
+	void get_obs_mat();
 	int inflation_iters;
 
 	// record keeper

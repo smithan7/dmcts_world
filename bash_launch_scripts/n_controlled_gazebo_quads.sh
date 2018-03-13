@@ -45,8 +45,8 @@ sleep 5s
 
 # Declare starting locations and info for 6 agents
 # effectively: low, high, low, high, low, high, low, high
-declare -a xs=(-25.0 25.0 -25.0 025.0 25.0 0.00 000.0 -25.0)
-declare -a ys=(-25.0 25.0 025.0 -25.0 00.0 25.0 -25.0 000.0)
+declare -a xs=(-15.0 15.0 -15.0 015.0 15.0 0.00 000.0 -15.0)
+declare -a ys=(-15.0 15.0 015.0 -15.0 00.0 15.0 -15.0 000.0)
 declare -a zs=(005.0 20.0 007.5 022.5 10.0 25.0 010.0 027.5)
 declare -a cs=(002.5 05.0 002.5 005.0 02.5 05.0 002.5 005.0)
 declare -a agent_types=(0 1 0 1 0 1 0 1)
@@ -66,7 +66,7 @@ rosparam set "/p_task_initially_active" $p_task_initially_active
 rosparam set "/number_of_nodes" $n_nodes
 rosparam set "/number_of_agents" $n_agents
 rosparam set "/coord_method" $coord_method
-rosparam set "/world_directory" "$(rospack find dmcts_world)/worlds/"
+rosparam set "/world_directory" "$(rospack find dmcts_world)/"
 rosparam set "/score_run" $score_run
 rosparam set "/dmcts_world/display_map" $world_display_map
 rosparam set "/agent_display_map" $agent_display_map

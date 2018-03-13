@@ -50,9 +50,9 @@ declare -a pay_obs_costs=(true false true false true false true false);
 
 # Load specific stuff for this trial
 echo "Loading ROS params"
-#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
+rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/willamette_park_params.yaml"
-rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
+#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/dmcts_params.yaml"
 rosparam set "/param_number" $param
 rosparam set "/end_time" $end_time
@@ -62,7 +62,7 @@ rosparam set "/p_task_initially_active" $p_task_initially_active
 rosparam set "/number_of_nodes" $n_nodes
 rosparam set "/number_of_agents" $n_agents
 rosparam set "/coord_method" $coord_method
-rosparam set "/world_directory" "$(rospack find dmcts_world)/worlds/"
+rosparam set "/world_directory" "$(rospack find dmcts_world)/"
 rosparam set "/score_run" $score_run
 rosparam set "/dmcts_world/display_map" $world_display_map
 rosparam set "/agent_display_map" $agent_display_map
