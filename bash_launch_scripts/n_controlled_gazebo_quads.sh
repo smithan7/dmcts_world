@@ -7,7 +7,7 @@ coord_method=$4
 p_task_initially_active=$5
 score_run=true
 gazebo_obstacles=false
-use_gazebo=false
+use_gazebo=true
 cruising_speed=1.0
 use_xbee=false
 end_time=120.0
@@ -53,8 +53,8 @@ declare -a ys=(-15.0 15.0 015.0 -15.0 00.0 15.0 -15.0 000.0)
 # Load specific stuff for this trial
 echo "Loading ROS params"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
-rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/willamette_park_params.yaml"
-#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
+#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/willamette_park_params.yaml"
+rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/dmcts_params.yaml"
 rosparam set "/param_number" $param
 rosparam set "/end_time" $end_time
@@ -72,6 +72,8 @@ rosparam set "/use_gazebo" $use_gazebo
 rosparam set "/hardware_trial" $hardware_trial
 rosparam set "/flat_tasks" $flat_tasks
 rosparam set "/speed_penalty" $speed_penalty
+rosparam set "/n_task_types" $n_task_types
+rosparam set "/n_agent_types" $n_agent_types
 echo "Loaded ROS params"
 sleep 2s
 
