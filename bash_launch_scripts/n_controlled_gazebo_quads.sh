@@ -16,6 +16,8 @@ use_hector_quad=true
 world_display_map=true
 agent_display_map=false
 hardware_trial=false # more, is this a search and resuce mission
+n_agent_types=2
+n_task_types=2
 flat_tasks=false
 speed_penalty=0.5
  
@@ -47,16 +49,12 @@ sleep 5s
 # effectively: low, high, low, high, low, high, low, high
 declare -a xs=(-15.0 15.0 -15.0 015.0 15.0 0.00 000.0 -15.0)
 declare -a ys=(-15.0 15.0 015.0 -15.0 00.0 15.0 -15.0 000.0)
-declare -a zs=(005.0 20.0 007.5 022.5 10.0 25.0 010.0 027.5)
-declare -a cs=(002.5 05.0 002.5 005.0 02.5 05.0 002.5 005.0)
-declare -a agent_types=(0 1 0 1 0 1 0 1)
-declare -a pay_obs_costs=(true false true false true false true false);
 
 # Load specific stuff for this trial
 echo "Loading ROS params"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
-#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/willamette_park_params.yaml"
-rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
+rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/willamette_park_params.yaml"
+#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/dmcts_params.yaml"
 rosparam set "/param_number" $param
 rosparam set "/end_time" $end_time
@@ -93,7 +91,7 @@ done
 echo "launching dmcts quad nodes"
 for ((ai=0; ai<n_agents; ai++))
 do
-    roslaunch dmcts dmcts_n.launch agent_index:=$ai desired_altitude:=${zs[ai]} pay_obstacle_costs:=${pay_obs_costs[ai]} cruising_speed:=${cs[ai]} use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad agent_type:=${agent_types[ai]} &
+    roslaunch dmcts dmcts_n.launch agent_index:=$ai use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad &
     pid="$pid $!" 
     sleep 5s
 done

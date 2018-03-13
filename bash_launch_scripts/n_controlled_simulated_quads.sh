@@ -9,11 +9,12 @@ score_run=true
 gazebo_obstacles=false
 cruising_speed=1.0
 use_xbee=false
+use_gazebo=false
 end_time=600.0
 way_point_tol=0.1
 use_hector_quad=false
 world_display_map=true
-agent_display_map=false
+agent_display_map=true
 hardware_trial=true # more, is this a search and resuce mission
 n_agent_types=2
 n_task_types=2
@@ -38,15 +39,6 @@ echo "Launching roscore..."
 roscore &
 pid="pid $!"
 sleep 1s
-
-# Declare starting locations and info for 6 agents
-# effectively: low, high, low, high, low, high, low, high
-declare -a xs=(-15.0 15.0 -15.0 015.0 15.0 0.00 000.0 -15.0)
-declare -a ys=(-15.0 15.0 015.0 -15.0 00.0 15.0 -15.0 000.0)
-declare -a zs=(005.0 20.0 007.5 022.5 10.0 25.0 010.0 027.5)
-declare -a cs=(002.5 05.0 002.5 005.0 02.5 05.0 002.5 005.0)
-declare -a agent_types=(0 1 0 1 0 1 0 1)
-declare -a pay_obs_costs=(true false true false true false true false);
 
 # Load specific stuff for this trial
 echo "Loading ROS params"
@@ -79,7 +71,7 @@ sleep 2s
 echo "launching dmcts fake quad nodes"
 for ((ai=0; ai<n_agents; ai++))
 do
-    roslaunch fake_dmcts_quad fake_dmcts_quad.launch agent_index:=$ai agent_altitude:=${zs[ai]} start_x:=${xs[ai]} start_y:=${ys[ai]} cruising_speed:=${cs[ai]} & 
+    roslaunch fake_dmcts_quad fake_dmcts_quad.launch agent_index:=$ai & 
     pid="$pid $!"
     sleep 1s
 done
@@ -92,7 +84,7 @@ done
 echo "launching dmcts quad nodes"
 for ((ai=0; ai<n_agents; ai++))
 do
-    roslaunch dmcts dmcts_n.launch agent_index:=$ai desired_altitude:=${zs[ai]} pay_obstacle_costs:=${pay_obs_costs[ai]} cruising_speed:=${cs[ai]} use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad agent_type:=${agent_types[ai]} &
+    roslaunch dmcts dmcts_n.launch agent_index:=$ai use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad &
     pid="$pid $!" 
     sleep 5s
 done

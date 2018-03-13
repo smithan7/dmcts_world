@@ -41,15 +41,6 @@ roscore &
 pid="pid $!"
 sleep 5s
 
-# Declare starting locations and info for 6 agents
-# effectively: low, high, low, high, low, high, low, high
-declare -a xs=(-25.0 25.0 -25.0 025.0 25.0 0.00 000.0 -25.0)
-declare -a ys=(-25.0 25.0 025.0 -25.0 00.0 25.0 -25.0 000.0)
-declare -a zs=(005.0 20.0 007.5 022.5 10.0 25.0 010.0 027.5)
-declare -a cs=(002.5 05.0 002.5 005.0 02.5 05.0 002.5 005.0)
-declare -a agent_types=(0 1 0 1 0 1 0 1)
-declare -a pay_obs_costs=(true false true false true false true false);
-
 # Load specific stuff for this trial
 echo "Loading ROS params"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
@@ -90,11 +81,10 @@ sleep 5s
 echo "Launching my pid controller"
     cd ~/catkin_ws
     ./src/my_quad_controller/scripts/dji_waypoint_controller.py &
-    #.$(rospack find my_quad_controller)/scripts/dji_waypoint_controller.py &
 echo "Launched pid controller"
 sleep 5s
 
 echo "Launching Dist-MCTS Node"
-roslaunch dmcts dmcts_dji.launch agent_index:=$agent_index desired_altitude:=${zs[agent_index]} pay_obstacle_costs:=${pay_obs_costs[ai]} cruising_speed:=${cs[agent_index]} use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad agent_type:=${agent_types[agent_index]}
+roslaunch dmcts dmcts_dji.launch agent_index:=$agent_index use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad
 pid="$pid $!" 
 sleep 5s
