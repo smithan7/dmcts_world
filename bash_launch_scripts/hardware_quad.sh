@@ -85,6 +85,12 @@ echo "Launched pid controller"
 sleep 5s
 
 echo "Launching Dist-MCTS Node"
-roslaunch dmcts dmcts_dji.launch agent_index:=$agent_index use_xbee:=$use_xbee use_hector_quad:=$use_hector_quad
+roslaunch dmcts dmcts_dji.launch agent_index:=$agent_index &
 pid="$pid $!" 
 sleep 5s
+
+echo "launching XBee for Agent"
+rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/xbee_agent_params.yaml"
+roslaunch xbee_bridge xbee_bridge.launch
+pid="$pid $!"
+sleedp 1s

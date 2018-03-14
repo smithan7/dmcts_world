@@ -41,8 +41,8 @@ sleep 5s
 
 # Load specific stuff for this trial
 echo "Loading ROS params"
-#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
-rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/willamette_park_params.yaml"
+rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
+#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/willamette_park_params.yaml"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/dmcts_params.yaml"
 rosparam set "/param_number" $param
@@ -72,6 +72,13 @@ sleep 2s
 #sleep 10s
 
 echo "launching dmcts_world_node"
-roslaunch dmcts_world dmcts_world.launch use_xbee:=$use_xbee
+roslaunch dmcts_world dmcts_world.launch &
 pid="$pid $!"
 sleep 1s
+
+echo "launching XBee for ground station"
+rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/xbee_groundstation_params.yaml"
+roslaunch xbee_bridge xbee_bridge.launch
+pid="$pid $!"
+sleedp 1s
+
