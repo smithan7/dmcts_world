@@ -1,7 +1,7 @@
 #!/bin/bash
 
-param=$1
-coord_method=$2
+param=34
+coord_method=greedy_completion_reward
 
 n_agents=1
 n_nodes=100
@@ -54,7 +54,7 @@ rosparam set "/p_task_initially_active" $p_task_initially_active
 rosparam set "/number_of_nodes" $n_nodes
 rosparam set "/number_of_agents" $n_agents
 rosparam set "/coord_method" $coord_method
-rosparam set "/world_directory" "$(rospack find dmcts_world)"
+rosparam set "/world_directory" "$(rospack find dmcts_world)/"
 rosparam set "/score_run" $score_run
 rosparam set "/dmcts_world/display_map" $world_display_map
 rosparam set "/agent_display_map" $agent_display_map
