@@ -45,6 +45,7 @@ rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/willamette_park_params.yaml"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/dmcts_params.yaml"
+rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/xbee_groundstation_params.yaml"
 rosparam set "/param_number" $param
 rosparam set "/end_time" $end_time
 rosparam set "/way_point_tol" $way_point_tol
@@ -77,7 +78,6 @@ pid="$pid $!"
 sleep 1s
 
 echo "launching XBee for ground station"
-#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/xbee_groundstation_params.yaml"
 #roslaunch xbee_bridge xbee_bridge.launch
 pid="$pid $!"
 sleedp 1s
