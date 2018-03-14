@@ -107,7 +107,7 @@ private:
 	std::vector<double> max_task_rewards, min_task_rewards;
 	std::vector<double> max_task_times, min_task_times;
 	std::vector<double> max_task_works, min_task_works;
-	std::vector<cv::Point2d> starting_locs;
+	std::vector<double> starting_xs, starting_ys;
 	cv::Mat travel_distances, obstacle_distances;
 		
 	int my_agent_index;
@@ -142,8 +142,8 @@ private:
 	std::vector< std::vector<double> > obstacles;
 	double obstacle_increase;
 	double find_obstacle_costs(const int &i, const int &j, const double &free_dist);
-	void make_obs_mat();
-	void seed_obs_mat();
+	void create_obs_mat();
+	void get_obs_mat();
 	int inflation_iters;
 
 	// record keeper

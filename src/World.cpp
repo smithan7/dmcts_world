@@ -43,6 +43,8 @@ World::World(ros::NodeHandle nHandle) {
 	ros::param::get("/flat_tasks", this->flat_tasks);
 	ros::param::get("/n_task_types", this->n_task_types);
 	ros::param::get("/n_agent_types", this->n_agent_types);
+	ros::param::get("/starting_xs", this->starting_xs);
+	ros::param::get("/starting_ys", this->starting_ys);
    	
    	this->test_obstacle_img = this->world_directory + this->test_obstacle_img;
     this->test_environment_img = this->world_directory + this->test_environment_img;
@@ -74,6 +76,8 @@ World::World(ros::NodeHandle nHandle) {
 	ROS_INFO("   flat_tasks %i", this->flat_tasks);
 	ROS_INFO("   n_task_types %i", this->n_task_types);
 	ROS_INFO("   n_agent_types %i", this->n_agent_types);
+	ROS_INFO("   starting_xs.size(): %i", int(this->starting_xs.size()));
+	ROS_INFO("   starting_ys.size(): %i", int(this->starting_ys.size()));
 
 
 	this->initialized = false;
@@ -152,29 +156,12 @@ World::World(ros::NodeHandle nHandle) {
 	this->max_travel_vel = 2.7; // 25 - fastest travel speed
 	this->min_agent_work = 100.0; // min amount of work an agent does per second
 	this->max_agent_work = 100.0; // max amount of work an agent does per second
-
-	// agent starting locations
-	this->starting_locs.push_back(cv::Point2d(-15,-15));
-	this->starting_locs.push_back(cv::Point2d(15,15));
-	this->starting_locs.push_back(cv::Point2d(-15,15));
-	this->starting_locs.push_back(cv::Point2d(15,-15));
-	this->starting_locs.push_back(cv::Point2d(0,15));
-	this->starting_locs.push_back(cv::Point2d(15,0));
-	this->starting_locs.push_back(cv::Point2d(0,-15));
-	this->starting_locs.push_back(cv::Point2d(-15,0));
+	
 	// reset randomization
 	srand(this->rand_seed);
-	if(this->test_environment_img.empty()){
-		this->make_obs_mat(); // create random obstacles
-	}
-	else{
-		this->seed_obs_mat(); // seed into cells satelite information
-	}
-	cv::Mat s = cv::Mat::zeros(this->Obs_Mat.size(), CV_8UC1);
-	for(int i=0; i<this->inflation_iters; i++){
-		cv::blur(this->Obs_Mat,s,cv::Size(5,5));
-		cv::max(this->Obs_Mat,s,this->Obs_Mat);
-	}
+	this->get_obs_mat(); // create random / or load obstacles
+	ROS_INFO("DMCTS_world_node::   Word::World(): mat size: %i, %i (cells)", this->Obs_Mat.cols, this->Obs_Mat.rows);
+	
 	// reset randomization
 	srand(this->rand_seed);
 	// initialize map, tasks, and agents
@@ -222,7 +209,7 @@ void World::delete_gazebo_node_model(const int &i){
 		//rosservice call gazebo/delete_model '{model_name: coffee_cup}'
 }
 
-void World::seed_obs_mat(){
+void World::get_obs_mat(){
 
 	this->Obs_Mat = cv::Mat::zeros(cv::Size(int(this->map_width_meters), int(this->map_height_meters)), CV_8UC1);
 	this->Env_Mat = cv::Mat::zeros(cv::Size(int(this->map_width_meters), int(this->map_height_meters)), CV_8UC3);
@@ -235,22 +222,32 @@ void World::seed_obs_mat(){
 	//cv::waitKey(0);
 
 	if(!temp_obs.data || !temp_env.data){
-		ROS_ERROR("World::seed_img::Could NOT load img");
+		this->create_obs_mat();
+		ROS_WARN("World::seed_img::Could NOT load img, creating img");
 		return;
 	}
+	else{
+	    cv::Mat temp;               // dst must be a different Mat
+	    //cv::flip(temp_obs, temp, 1); 
+		cv::resize(temp_obs, this->Obs_Mat, this->Obs_Mat.size());
+		//cv::flip(temp_env, temp, 1);
+		cv::resize(temp_env, this->Env_Mat, this->Env_Mat.size());
+	}
 
-    cv::Mat temp;               // dst must be a different Mat
-    //cv::flip(temp_obs, temp, 1); 
-	cv::resize(temp_obs, this->Obs_Mat, this->Obs_Mat.size());
-	//cv::flip(temp_env, temp, 1);
-	cv::resize(temp_env, this->Env_Mat, this->Env_Mat.size());
+
+	cv::Mat s = cv::Mat::zeros(this->Obs_Mat.size(), CV_8UC1);
+	for(int i=0; i<this->inflation_iters; i++){
+		cv::blur(this->Obs_Mat,s,cv::Size(5,5));
+		cv::max(this->Obs_Mat,s,this->Obs_Mat);
+	}
 
 	//cv::namedWindow("DMCTS_World::World::seed_obs_mat:Obstacles", cv::WINDOW_NORMAL);
 	//cv::imshow("DMCTS_World::World::seed_obs_mat:Obstacles", this->Env_Mat);
 	//cv::waitKey(0);
 }
 
-void World::make_obs_mat(){
+void World::create_obs_mat(){
+
 	this->map_width_meters = 100.0;
 	this->map_height_meters = 100.0;
 	this->Obs_Mat = cv::Mat::zeros(cv::Size(int(this->map_width_meters), int(this->map_height_meters)), CV_8UC1);
@@ -267,9 +264,9 @@ void World::make_obs_mat(){
 		//ROS_INFO("obs: %.1f, %.1f, r =  %.1f", xx, yy, rr);
 		// check if any starting locations are in an obstacle
 		bool flag = true;
-		for(size_t s=0; s<this->starting_locs.size(); s++){
-			double d = sqrt(pow(xx-this->starting_locs[s].x,2) + pow(yy-this->starting_locs[s].y,2));
-			//ROS_INFO("starting_locs: %.1f, %.1f, d = %.1f", this->starting_locs[s].x+this->map_width_meters/2, this->starting_locs[s].y+this->map_height_meters/2, d);
+		for(size_t s=0; s<this->starting_xs.size(); s++){
+			double d = sqrt(pow(xx-this->starting_xs[s],2) + pow(yy-this->starting_ys[s],2));
+			//ROS_INFO("starting_locs: %.1f, %.1f, d = %.1f", this->starting_xs[s]+this->map_width_meters/2, this->starting_ys[s]+this->map_height_meters/2, d);
 			if(rr+2 >= d ){
 				// starting loc is in obstacle
 				flag = false;
@@ -340,7 +337,7 @@ void World::request_work_callback(const custom_messages::DMCTS_Request_Work &msg
 	try{
 		if( this->nodes[msg.n_index] ){
 		    if( this->nodes[msg.n_index]->is_active() ){
-		        int a_type = this->agents[msg.a_index]->get_type();
+		        int a_type = msg.a_type;
 		        this->nodes[msg.n_index]->get_worked_on(a_type, this->c_time, work_done, reward_collected);
 			    this->reward_captured.push_back(reward_collected);
 			    this->reward_time.push_back(this->c_time);
@@ -1165,9 +1162,9 @@ void World::initialize_nodes_and_tasks() {
 	}
 
 	double x,y;
-	for(size_t i=0; i<this->starting_locs.size(); i++){
+	for(size_t i=0; i<this->starting_xs.size(); i++){
 		int task_type = rand() % n_task_types;
-		Map_Node* n = new Map_Node(this->starting_locs[i].x, this->starting_locs[i].y, i, this->p_task_initially_active, task_type, task_work_by_agent[task_type], task_colors[task_type], this->flat_tasks, this);
+		Map_Node* n = new Map_Node(this->starting_xs[i], this->starting_ys[i], i, this->p_task_initially_active, task_type, task_work_by_agent[task_type], task_colors[task_type], this->flat_tasks, this);
 		this->nodes.push_back(n);
 	}
 

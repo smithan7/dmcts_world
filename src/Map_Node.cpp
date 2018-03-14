@@ -62,6 +62,11 @@ void Map_Node::update_task(World* world) {
 
 void Map_Node::get_worked_on(const int &agent_type, const double &c_time, double &agent_work, double &reward_collected){
 	agent_work = this->agent_work[agent_type];
+	//std::cout << "agent tyoe: " << agent_type << std::endl;
+	//std::cout << "this->agent_work: " << this->agent_work[0] << ", " << this->agent_work[1] << " = " << this->agent_work[agent_type] << std::endl;
+	//std::cout << "agent work: " << agent_work << std::endl;
+	//std::cout << "remaining_work: " << this->remaining_work << std::endl;
+
 	this->remaining_work -= this->agent_work[agent_type];
 	if (this->remaining_work <= 0.0) {
 		reward_collected = this->get_reward_at_time(c_time);

@@ -2,8 +2,14 @@ north_lat: 44.565476
 south_lat: 44.565125
 east_lon: -123.271564
 west_lon: -123.272909
-test_obstacle_img: ~/catkin_ws/src/dmcts_world/bash_launch_scripts/hardware_imgs/park_obstacles.png
-test_environment_img: ~/catkin_ws/src/dmcts_world/bash_launch_scripts/hardware_imgs/park.png
+test_obstacle_img: bash_launch_scripts/hardware_imgs/park_obstacles.png
+test_environment_img: bash_launch_scripts/hardware_imgs/park.png
 meters_per_cell: 0.2
 inflation_iters: 10
 obstacle_increase: 5.0
+starting_xs: [-15.0, 15.0, -15.0, 15.0, 0.0, 15.0, 0.0, -15.0]
+starting_ys: [-15.0, 15.0, 15.0, -15.0, 15.0, 0.0, -15.0, 0.0]
+cruising_speeds: [2.5, 5.0, 2.5, 5.0, 2.5, 5.0, 2.5, 5.0]
+agent_altitudes: [5.0, 20.0, 7.5, 22.5, 10.0, 25.0, 10.0, 27.5]
+agent_types: [0, 1, 0, 1, 0, 1, 0, 1]
+pay_obs_costs: [true, false, true, false, true, false, true, false]
