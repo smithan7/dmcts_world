@@ -93,4 +93,4 @@ sleep 5s
 echo "launching XBee for Agent"
 roslaunch xbee_bridge xbee_bridge.launch
 pid="$pid $!"
-sleedp 1s
+sleep 1s
