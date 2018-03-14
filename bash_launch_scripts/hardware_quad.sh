@@ -81,7 +81,7 @@ sleep 5s
 
 echo "Launching my pid controller"
     cd ~/catkin_ws
-#    ./src/my_quad_controller/scripts/dji_waypoint_controller.py &
+    ./src/my_quad_controller/scripts/dji_waypoint_controller.py &
 echo "Launched pid controller"
 sleep 5s
 
