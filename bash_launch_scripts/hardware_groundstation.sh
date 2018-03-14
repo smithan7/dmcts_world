@@ -73,12 +73,12 @@ sleep 2s
 #sleep 10s
 
 echo "launching dmcts_world_node"
-roslaunch dmcts_world dmcts_world.launch
+roslaunch dmcts_world dmcts_world.launch &
 pid="$pid $!"
 sleep 1s
 
 echo "launching XBee for ground station"
-#roslaunch xbee_bridge xbee_bridge.launch
+roslaunch xbee_bridge xbee_bridge.launch
 pid="$pid $!"
 sleedp 1s
 
