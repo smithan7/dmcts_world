@@ -72,13 +72,13 @@ sleep 2s
 #sleep 10s
 
 echo "launching dmcts_world_node"
-roslaunch dmcts_world dmcts_world.launch &
+roslaunch dmcts_world dmcts_world.launch
 pid="$pid $!"
 sleep 1s
 
 echo "launching XBee for ground station"
-rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/xbee_groundstation_params.yaml"
-roslaunch xbee_bridge xbee_bridge.launch
+#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/xbee_groundstation_params.yaml"
+#roslaunch xbee_bridge xbee_bridge.launch
 pid="$pid $!"
 sleedp 1s
 

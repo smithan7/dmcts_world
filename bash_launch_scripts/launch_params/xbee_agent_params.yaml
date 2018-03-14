@@ -1,4 +1,4 @@
-com_port: /dev/ttyUSB1
+com_port: /dev/ttyUSB0
 baud_rate: 9600
 com_type: agent
 fake_agent: false
