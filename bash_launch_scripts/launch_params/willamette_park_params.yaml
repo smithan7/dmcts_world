@@ -4,7 +4,7 @@ east_lon: -123.248111
 west_lon: -123.250662
 test_obstacle_img: bash_launch_scripts/hardware_imgs/willamette_park_obstacles.png
 test_environment_img: bash_launch_scripts/hardware_imgs/willamette_park.png
-meters_per_cell: 0.2
+meters_per_cell: 1.0
 inflation_iters: 10
 obstacle_increase: 5.0
 starting_xs: [-15.0, 15.0, -15.0, 15.0, 0.0, 15.0, 0.0, -15.0]
