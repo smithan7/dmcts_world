@@ -16,8 +16,8 @@ if __name__ == '__main__':
     use_gazebo = False
     maps_per_round = 3
 
-    depth_set = [4,5,6,7,8]
-    beta_set = [0.5, 1.0, 1.5]
+    depth_set = [8]#[4,5,6,7,8]
+    beta_set = [1.5]#[0.5, 1.0, 1.5]
     alpha_set = [0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0]
     param_set = [34, 50, 81]
 
