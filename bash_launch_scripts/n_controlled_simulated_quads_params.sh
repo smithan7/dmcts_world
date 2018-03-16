@@ -21,11 +21,11 @@ way_point_tol=0.1
 use_hector_quad=false
 world_display_map=true
 agent_display_map=false
-hardware_trial=true # more, is this a search and resuce mission
+hardware_trial=false # more, is this a search and resuce mission
 n_agent_types=2
 n_task_types=2
-flat_tasks=true
-speed_penalty=0.0
+flat_tasks=false
+speed_penalty=0.5
 
 my_pid=$$
 echo "My process ID is $my_pid"
@@ -51,12 +51,12 @@ echo "Loading ROS params"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/willamette_park_params.yaml"
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
-#rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/dmcts_params.yaml"
-rosparam set "/alpha" $alpha
-rosparam set "/beta" $beta
-rosparam set "/depth" $depth
-rosparam set "/epsilon" $epsilon
-rosparam set "/min_sampling_threshold" $min_sampling_threshold
+rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/dmcts_params.yaml"
+#rosparam set "/alpha" $alpha
+#rosparam set "/beta" $beta
+#rosparam set "/depth" $depth
+#rosparam set "/epsilon" $epsilon
+#rosparam set "/min_sampling_threshold" $min_sampling_threshold
 
 rosparam set "/param_number" $param
 rosparam set "/end_time" $end_time
