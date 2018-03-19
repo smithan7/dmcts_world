@@ -6,12 +6,12 @@ import os
 
 if __name__ == '__main__':
 
-    num_agent_set = [5]#[2,3,5,7]
-    p_active_set = [0.75]#[0.25, 0.25, 0.4, 0.5, 0.7]
+    num_agent_set = [3]#[2,3,5,7]
+    p_active_set = [0.25]#[0.25, 0.25, 0.4, 0.5, 0.7]
     num_nodes = 100
     coord_type_set = ['"mcts_task_by_completion_reward_gradient"', '"greedy_completion_reward"']
 
-    use_gazebo = False
+    use_gazebo = True
     maps_per_round = 1
 
     for ai in range(0,len(num_agent_set)):
