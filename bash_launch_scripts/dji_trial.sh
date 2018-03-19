@@ -46,6 +46,7 @@ echo "Loading ROS params"
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/willamette_park_params.yaml"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
+rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/${DJI_NAME}_params.yaml"
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/dmcts_params.yaml"
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/xbee_agent_params.yaml"
 rosparam set "/param_number" $param
