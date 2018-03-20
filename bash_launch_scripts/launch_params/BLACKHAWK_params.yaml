@@ -1,6 +1,7 @@
-starting_xs: 0.0
-starting_ys: 0.0
-cruising_speeds: 0.25
-agent_altitudes: 10.0
-agent_types: 0
-pay_obs_costs: true
+agent_index: 1
+#starting_xs: 0.0
+#starting_ys: 0.0
+#cruising_speeds: 0.25
+#agent_altitudes: 10.0
+#agent_types: 0
+#pay_obs_costs: true

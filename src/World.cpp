@@ -20,6 +20,7 @@
 
 World::World(ros::NodeHandle nHandle) {
 
+    double inflation_box_size_meters;
 	ros::param::get("/test_environment_img", this->test_environment_img);
 	ros::param::get("/test_obstacle_img", this->test_obstacle_img);
 	ros::param::get("/number_of_agents", this->n_agents);
@@ -38,6 +39,8 @@ World::World(ros::NodeHandle nHandle) {
 	ros::param::get("/east_lon", this->east_lon);
 	ros::param::get("/west_lon", this->west_lon);
 	ros::param::get("/inflation_iters", this->inflation_iters);
+	ros::param::get("/meters_per_cell", this->meters_per_cell);
+	ros::param::get("/inflation_box_size_meters", inflation_box_size_meters);
 	ros::param::get("/obstacle_increase", this->obstacle_increase);
 	ros::param::get("/hardware_trial", this->hardware_trial);
 	ros::param::get("/flat_tasks", this->flat_tasks);
@@ -49,6 +52,7 @@ World::World(ros::NodeHandle nHandle) {
    	this->test_obstacle_img = this->world_directory + this->test_obstacle_img;
     this->test_environment_img = this->world_directory + this->test_environment_img;
     this->world_directory = this->world_directory + "/worlds/";
+    this->inflation_box_size = inflation_box_size_meters / this->meters_per_cell;
    	
 	ROS_INFO("World::initializing world");
 	ROS_INFO("   test_environment_img %s", this->test_environment_img.c_str());
@@ -237,7 +241,7 @@ void World::get_obs_mat(){
 
 	cv::Mat s = cv::Mat::zeros(this->Obs_Mat.size(), CV_8UC1);
 	for(int i=0; i<this->inflation_iters; i++){
-		cv::blur(this->Obs_Mat,s,cv::Size(5,5));
+		cv::blur(this->Obs_Mat,s,cv::Size(this->inflation_box_size, this->inflation_box_size));
 		cv::max(this->Obs_Mat,s,this->Obs_Mat);
 	}
 

@@ -145,6 +145,7 @@ private:
 	void create_obs_mat();
 	void get_obs_mat();
 	int inflation_iters;
+	int inflation_box_size;
 
 	// record keeper
 	std::vector<double> reward_captured;
@@ -169,7 +170,6 @@ private:
 	void iterate_my_agent();
 	void run_simulation();
 	void clean_up_from_sim();
-
 };
 
 
