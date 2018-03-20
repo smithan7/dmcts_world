@@ -3,6 +3,7 @@
 param=34
 coord_method=greedy_completion_reward
 
+agent_index=-1
 n_agents=1
 n_nodes=100
 p_task_initially_active=0.4
@@ -46,6 +47,7 @@ rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/dmcts_params.yaml"
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/xbee_groundstation_params.yaml"
+rosparam set "/agent_index" $agent_index
 rosparam set "/param_number" $param
 rosparam set "/end_time" $end_time
 rosparam set "/way_point_tol" $way_point_tol

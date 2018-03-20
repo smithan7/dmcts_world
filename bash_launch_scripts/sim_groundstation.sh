@@ -2,25 +2,24 @@
 
 param=34
 coord_method=greedy_completion_reward
-
+agent_index=-1
+n_agents=1
 n_nodes=100
 p_task_initially_active=0.4
-n_agents=3
-agent_index=0
 score_run=true
 gazebo_obstacles=false
 use_gazebo=false
 cruising_speed=1.0
-use_xbee=false
+use_xbee=true
 end_time=12000.0
 way_point_tol=1.0
 use_hector_quad=true
 world_display_map=true
-agent_display_map=true
+agent_display_map=false
 hardware_trial=false # more, is this a search and rescue mission
 flat_tasks=false
 speed_penalty=0.5
-
+ 
 my_pid=$$
 echo "My process ID is $my_pid"
 echo "  n_agents: $n_agents"
@@ -34,7 +33,6 @@ echo "  way_point_tol: $way_point_tol"
 echo "Sourcing ~/catkin_ws/devel/setup.bash"
 source ~/catkin_ws/devel/setup.bash &
 pid=$!
-sleep 2s
 
 echo "Launching roscore..."
 roscore &
@@ -46,9 +44,9 @@ echo "Loading ROS params"
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/osu_field_params.yaml"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/willamette_park_params.yaml"
 #rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/gazebo_map_params.yaml" &
-rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/${DJI_NAME}_params.yaml"
 rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/dmcts_params.yaml"
-rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/xbee_agent_params.yaml"
+rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/xbee_groundstation_params.yaml"
+rosparam set "/agent_index" $agent_index
 rosparam set "/param_number" $param
 rosparam set "/end_time" $end_time
 rosparam set "/way_point_tol" $way_point_tol
@@ -67,31 +65,21 @@ rosparam set "/flat_tasks" $flat_tasks
 rosparam set "/speed_penalty" $speed_penalty
 rosparam set "/n_task_types" 2
 rosparam set "/n_agent_types" 2
-rosparam set "/agent_index" $agent_index
-rosparam set "/desired_altitude" ${zs[agent_index]}
-rosparam set "/cruising_speed" ${cs[agent_index]}
-rosparam set "/display_costmap_path" true
 echo "Loaded ROS params"
 sleep 2s
 
+#echo "launching rviz"
+#rviz &
+#pid="$pid $!"
+#sleep 10s
 
-echo "Launching DJI-SDK"
-roslaunch dji_sdk sdk_manifold.launch &
-echo "Launched DJI-SDK"
-sleep 5s
+echo "launching dmcts_world_node"
+roslaunch dmcts_world dmcts_world.launch &
+pid="$pid $!"
+sleep 1s
 
-echo "Launching my pid controller"
-    cd ~/catkin_ws
-    ./src/my_quad_controller/scripts/dji_waypoint_controller.py &
-echo "Launched pid controller"
-sleep 5s
-
-echo "Launching Dist-MCTS Node"
-roslaunch dmcts dmcts_dji.launch agent_index:=$agent_index &
-pid="$pid $!" 
-sleep 5s
-
-echo "launching XBee for Agent"
+echo "launching XBee for ground station"
 roslaunch xbee_bridge xbee_bridge.launch
 pid="$pid $!"
 sleep 1s
+

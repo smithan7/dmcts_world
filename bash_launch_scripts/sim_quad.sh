@@ -75,16 +75,10 @@ echo "Loaded ROS params"
 sleep 2s
 
 
-echo "Launching DJI-SDK"
-roslaunch dji_sdk sdk_manifold.launch &
-echo "Launched DJI-SDK"
-sleep 5s
-
-echo "Launching my pid controller"
-    cd ~/catkin_ws
-    ./src/my_quad_controller/scripts/dji_waypoint_controller.py &
-echo "Launched pid controller"
-sleep 5s
+echo "Launching Simulated Quad"
+roslaunch fake_dmcts_quad fake_dmcts_quad.launch agent_index:=$agent_index &
+pid="$pid $!"
+sleep 1s
 
 echo "Launching Dist-MCTS Node"
 roslaunch dmcts dmcts_dji.launch agent_index:=$agent_index &
