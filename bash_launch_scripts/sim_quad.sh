@@ -6,7 +6,6 @@ coord_method=greedy_completion_reward
 n_nodes=100
 p_task_initially_active=0.4
 n_agents=3
-agent_index=0
 score_run=true
 gazebo_obstacles=false
 use_gazebo=false
@@ -67,12 +66,13 @@ rosparam set "/flat_tasks" $flat_tasks
 rosparam set "/speed_penalty" $speed_penalty
 rosparam set "/n_task_types" 2
 rosparam set "/n_agent_types" 2
-rosparam set "/agent_index" $agent_index
 rosparam set "/desired_altitude" ${zs[agent_index]}
 rosparam set "/cruising_speed" ${cs[agent_index]}
 rosparam set "/display_costmap_path" true
 echo "Loaded ROS params"
 sleep 2s
+
+agent_index=$(rosparam get agent_index)
 
 
 echo "Launching Simulated Quad"
