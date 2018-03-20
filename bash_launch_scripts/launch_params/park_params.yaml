@@ -6,7 +6,9 @@ test_obstacle_img: bash_launch_scripts/hardware_imgs/park_obstacles.png
 test_environment_img: bash_launch_scripts/hardware_imgs/park.png
 meters_per_cell: 0.2
 inflation_iters: 10
+inflation_box_size_meters: 10.0
 obstacle_increase: 5.0
+inflation_box_size_meters: 10.0
 starting_xs: [-15.0, 15.0, -15.0, 15.0, 0.0, 15.0, 0.0, -15.0]
 starting_ys: [-15.0, 15.0, 15.0, -15.0, 15.0, 0.0, -15.0, 0.0]
 cruising_speeds: [2.5, 5.0, 2.5, 5.0, 2.5, 5.0, 2.5, 5.0]

@@ -123,7 +123,7 @@ private:
 	double p_task_initially_active, p_impossible_task, p_activate_task;
 	double min_task_time, max_task_time, min_task_work, max_task_work, min_task_reward, max_task_reward;
 	double min_travel_vel, max_travel_vel, min_agent_work, max_agent_work;
-	double map_width_meters, map_height_meters;
+	double map_width_meters, map_height_meters, map_width_cells, map_height_cells;
 	double p_pay_obstacle_cost; // probability that a generated agent will have to pay obstacle tolls
 
 	int k_map_connections; // minimum number of connections in graph
@@ -145,7 +145,9 @@ private:
 	void create_obs_mat();
 	void get_obs_mat();
 	int inflation_iters;
-	int inflation_box_size;
+	double inflation_box_size;
+	double node_obstacle_threshold, inflation_sigma;
+	double cells_per_meter, meters_per_cell;
 
 	// record keeper
 	std::vector<double> reward_captured;
@@ -166,6 +168,7 @@ private:
 	void initialize_agents(ros::NodeHandle nHandle);
 	double get_global_distance(const double &lata, const double &lona, const double &latb, const double &lonb);
 	double to_radians(const double &deg);
+	void draw_prm_on_obs_mat();
 	// do stuff
 	void iterate_my_agent();
 	void run_simulation();
