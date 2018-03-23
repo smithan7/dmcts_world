@@ -1,4 +1,4 @@
 com_port: /dev/ttyUSB0
-baud_rate: 9600
+baud_rate: 115200
 com_type: ground_station
 fake_agent: false
