@@ -101,6 +101,9 @@ public:
 	int get_n_active_tasks();
 
 private:
+    void write_nodes_as_params();
+    std::string map_name;
+    bool read_map, write_map;
 	double north_lat, south_lat, east_lon, west_lon;
 	bool use_gazebo_obstacles, use_gazebo, hardware_trial;
     std::string test_environment_img, test_obstacle_img;
@@ -156,13 +159,14 @@ private:
 	
 	// initialize everything
 	int param_file_index;
-	std::string world_directory;
+	std::string world_directory, package_directory;
 	std::string task_selection_method;
 	int rand_seed;
 	char* param_file;
 	void write_params();
 	void load_params();
 	void initialize_nodes_and_tasks();
+	void read_nodes_and_tasks();
 	void initialize_PRM();
 	void generate_tasks();
 	void initialize_agents(ros::NodeHandle nHandle);

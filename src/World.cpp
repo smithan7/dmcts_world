@@ -25,7 +25,7 @@ World::World(ros::NodeHandle nHandle) {
 	ros::param::get("/test_obstacle_img", this->test_obstacle_img);
 	ros::param::get("/number_of_agents", this->n_agents);
 	ros::param::get("/param_number", this->rand_seed);
-	ros::param::get("/world_directory", this->world_directory);
+	ros::param::get("/package_directory", this->package_directory);
 	ros::param::get("/score_run", this->score_run);
 	ros::param::get("/dmcts_world/display_map", this->show_display );
 	ros::param::get("/coord_method", this->task_selection_method);
@@ -50,11 +50,14 @@ World::World(ros::NodeHandle nHandle) {
 	ros::param::get("/starting_xs", this->starting_xs);
 	ros::param::get("/starting_ys", this->starting_ys);
 	ros::param::get("/node_obstacle_threshold", this->node_obstacle_threshold);
+	ros::param::get("/map_name", this->map_name);
+	ros::param::get("/read_map", this->read_map);
+	ros::param::get("/write_map", this->write_map);
    	
 
-   	this->test_obstacle_img = this->world_directory + this->test_obstacle_img;
-    this->test_environment_img = this->world_directory + this->test_environment_img;
-    this->world_directory = this->world_directory + "/worlds/";
+   	this->test_obstacle_img = this->package_directory + this->test_obstacle_img;
+    this->test_environment_img = this->package_directory + this->test_environment_img;
+    this->world_directory = this->package_directory + "/worlds/";
     this->cells_per_meter = 1.0 / this->meters_per_cell;
     this->inflation_box_size = inflation_box_size_meters * this->cells_per_meter;
    	
@@ -63,6 +66,7 @@ World::World(ros::NodeHandle nHandle) {
 	ROS_INFO("   test_obstacle_img %s", this->test_obstacle_img.c_str());
 	ROS_INFO("   number_of_agents %i", this->n_agents);
 	ROS_INFO("   param_number %i", this->rand_seed);
+	ROS_INFO("   package directory %s", this->package_directory.c_str());
 	ROS_INFO("   world directory %s", this->world_directory.c_str());
 	ROS_INFO("   score_run %i", this->score_run);
 	ROS_INFO("   display_map %i", this->show_display);
@@ -91,7 +95,9 @@ World::World(ros::NodeHandle nHandle) {
 	ROS_INFO("   n_agent_types %i", this->n_agent_types);
 	ROS_INFO("   starting_xs.size(): %i", int(this->starting_xs.size()));
 	ROS_INFO("   starting_ys.size(): %i", int(this->starting_ys.size()));
-
+    ROS_INFO("   map_name %s", this->map_name.c_str());
+    ROS_INFO("   read_map %i", int(this->read_map));
+    ROS_INFO("   write_map %i", int(this->write_map));
 
 	this->initialized = false;
 	this->initialized_clock = false;
@@ -182,7 +188,16 @@ World::World(ros::NodeHandle nHandle) {
 	// reset randomization
 	srand(this->rand_seed);
 	// initialize map, tasks, and agents
-	this->initialize_nodes_and_tasks();
+	if(this->read_map){
+        this->read_nodes_and_tasks();
+    }
+    else{
+    	this->initialize_nodes_and_tasks();
+    }
+    if(this->write_map){
+        this->write_nodes_as_params();
+    }
+        
 	// reset randomization
 	srand(this->rand_seed);
 	this->initialize_PRM();
@@ -204,10 +219,7 @@ World::World(ros::NodeHandle nHandle) {
 }
 
 
-void World::draw_prm_on_obs_mat(){
-
-
-	
+void World::draw_prm_on_obs_mat(){	
 	// draw PRM connections
 	for (int i = 0; i < this->n_nodes; i++) {
 		int index = -1;
@@ -241,7 +253,7 @@ void World::draw_prm_on_obs_mat(){
 
 	cv::namedWindow("DMCTS_World::Map World", cv::WINDOW_NORMAL);
 	cv::imshow("DMCTS_World::Map World", this->Obs_Mat);
-	cv::waitKey(0);
+	cv::waitKey(100);
 }
 
 void World::spawn_gazebo_model(){
@@ -301,9 +313,9 @@ void World::get_obs_mat(){
 		cv::max(this->Obs_Mat,s,this->Obs_Mat);
 	}
 
-	cv::namedWindow("DMCTS_World::World::get_obs_mat:Obstacles", cv::WINDOW_NORMAL);
-	cv::imshow("DMCTS_World::World::get_obs_mat:Obstacles", this->Obs_Mat);
-	cv::waitKey(10);
+	//cv::namedWindow("DMCTS_World::World::get_obs_mat:Obstacles", cv::WINDOW_NORMAL);
+	//cv::imshow("DMCTS_World::World::get_obs_mat:Obstacles", this->Obs_Mat);
+	//cv::waitKey(10);
 
 	//cv::namedWindow("DMCTS_World::World::seed_obs_mat:Env_Mat", cv::WINDOW_NORMAL);
 	//cv::imshow("DMCTS_World::World::seed_obs_mat:Env_Mat", this->Env_Mat);
@@ -1281,6 +1293,60 @@ void World::initialize_nodes_and_tasks() {
 		Map_Node* n = new Map_Node(x-double(this->Obs_Mat.cols)/2.0, y-double(this->Obs_Mat.rows)/2.0, i, this->p_task_initially_active, task_type, task_work_by_agent[task_type], task_colors[task_type], this->flat_tasks, this);
 		this->nodes.push_back(n);
 	}
+}
+
+void World::read_nodes_and_tasks() {
+
+	std::string rf;
+	rf.append(this->package_directory);
+	rf.append("bash_launch_scripts/launch_params/");
+	char temp[200];
+	rf.append(this->map_name);
+	int n = sprintf(temp, "_param_%i.xml", this->rand_seed);
+	rf.append(temp);//this->param_file = temp_char;
+	
+    cv::FileStorage fs;
+    fs.open(rf, cv::FileStorage::READ);
+    
+	for(int i=0; i<this->n_nodes; i++){
+		char temp[200];
+	    sprintf(temp, "node%i", int(i));
+	    std::vector<double> nd;
+	    fs[temp] >> nd;
+		Map_Node* n = new Map_Node(nd, this);
+		this->nodes.push_back(n);
+	}
+}
+
+void World::write_nodes_as_params() {
+
+	std::string rf;
+	rf.append(this->package_directory);
+	rf.append("bash_launch_scripts/launch_params/");
+	char temp[200];
+	rf.append(this->map_name);
+	int n = sprintf(temp, "_param_%i.xml", this->rand_seed);
+	rf.append(temp);//this->param_file = temp_char;
+	cv::FileStorage fs;
+	fs.open(rf, cv::FileStorage::WRITE);
+	ROS_INFO("World::write_nodes_as_params: writing nodes to %s", rf.c_str());
+
+	// randomizing stuff in a controlled way
+	fs << "rand_seed" << this->rand_seed;
+    fs << "map_name" << this->map_name;
+
+	// map and PRM stuff
+	fs << "map_height_meters" << this->map_height_meters;
+	fs << "map_width_meters" << this->map_width_meters;
+	fs << "n_nodes" << this->n_nodes;
+	
+	for(size_t i=0; i<this->nodes.size(); i++){
+	    //std::string n;
+	    char temp[200];
+	    sprintf(temp, "node%i", int(i));
+	    fs << temp << this->nodes[i]->output_node_info();	    
+	}
+	fs.release();
 }
 
 World::~World(){

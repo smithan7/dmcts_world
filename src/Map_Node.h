@@ -12,7 +12,9 @@ class World;
 
 class Map_Node{
 public:
-Map_Node(const double &x, const double &y, const int &index, const double &p_active, const int &task_type, std::vector<double> &work, const cv::Scalar &color, const bool &flat_tasks, World* world);
+    Map_Node(const double &x, const double &y, const int &index, const double &p_active, const int &task_type, std::vector<double> &work, const cv::Scalar &color, const bool &flat_tasks, World* world);
+	Map_Node(const std::vector<double> &data, World* world);
+	std::vector<double> output_node_info();
 	bool is_active() { return this->active; }; // is the task active
 	double get_reward_at_time(double time); // get the reward at time
 	double get_acted_upon(Agent* agent); // act for one time step, are there agents working on me, should I deactivate 
@@ -41,7 +43,6 @@ private:
 	double x;
 	double y;
 	cv::Point2d loc;
-	double work_radius;
 
 	int index;
 	cv::Scalar color;

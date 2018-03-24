@@ -21,6 +21,13 @@ Map_Node::Map_Node(const double &x, const double &y, const int &index, const dou
 	this->task_type = task_type;
 	this->agent_work = work;
 	this->flat_tasks = flat_tasks;
+	this->initial_reward = 0.0;
+	this->reward_window_type = -1;
+	this->start_time = 0.0;
+	this->end_time = 0.0;
+	this->reward_slope = 0.0;
+	this->reward_offset = 0.0;
+	this->reward_decay = 0.0;
 
 	// range of rewards for tasks
 	this->max_reward = world->get_max_task_reward(this->task_type);
@@ -36,7 +43,6 @@ Map_Node::Map_Node(const double &x, const double &y, const int &index, const dou
 	this->min_work = world->get_min_task_work(this->task_type);
 	this->max_work = world->get_max_task_work(this->task_type);
 
-	this->work_radius = 5.0;
 
 	// start setting it up
 	this->active = false;
@@ -44,6 +50,65 @@ Map_Node::Map_Node(const double &x, const double &y, const int &index, const dou
 		// should I be active upon spawning?
 		this->activate(world);
 	}
+}
+
+Map_Node::Map_Node(const std::vector<double> &data, World* world){
+    this->x = data[0];
+    this->y = data[1];
+    this->index = data[2];
+    this->active = bool(data[3]);
+    this->initial_reward = data[4];
+    this->reward_window_type = int(data[5]);
+    this->start_time = data[6];
+    this->end_time = data[7];
+    this->reward_slope = data[8];
+    this->reward_offset = data[9];
+    this->reward_decay = data[10];
+    this->flat_tasks = bool(data[11]);
+    this->task_type = int(data[12]);
+    this->color = cv::Scalar(0.0,0.0,0.0);
+    this->color[0] = data[13];
+    this->color[1] = data[14];
+    this->color[2] = data[15];
+    this->flat_tasks = data[16];
+    
+    for(int i=0; i<world->get_n_agents(); i++){
+        this->agent_work.push_back(data[17+i]);
+    }
+    
+  	// set up the tasks
+    this->world = world;
+    this->end_mission_time = world->get_end_time();
+    this->n_nbrs = 0;
+    this->loc = cv::Point2d(x, y);
+	this->n_reward_window_types = 4;
+	this->task_type = task_type;
+	this->flat_tasks = flat_tasks;
+}
+
+std::vector<double> Map_Node::output_node_info(){
+    std::vector<double> data;
+    data.push_back(this->x);
+    data.push_back(this->y);
+    data.push_back(index);
+    data.push_back(double(this->active));
+    data.push_back(initial_reward);
+    data.push_back(double(reward_window_type));
+    data.push_back(start_time);
+    data.push_back(end_time);
+    data.push_back(reward_slope);
+    data.push_back(reward_offset);    
+    data.push_back(reward_decay);
+    data.push_back(double(flat_tasks));
+    data.push_back(double(task_type));
+    data.push_back(double(color[0]));
+    data.push_back(double(color[1]));
+    data.push_back(double(color[2]));
+    data.push_back(double(this->flat_tasks));
+    for(int i=0; i<this->world->get_n_agents(); i++){
+        data.push_back(this->agent_work[i]);
+    }
+    return data;
 }
 
 void Map_Node::deactivate() {

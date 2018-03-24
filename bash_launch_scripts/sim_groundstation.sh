@@ -19,6 +19,8 @@ agent_display_map=false
 hardware_trial=false # more, is this a search and rescue mission
 flat_tasks=false
 speed_penalty=0.5
+write_map_as_params=false
+read_map_from_params=true
  
 my_pid=$$
 echo "My process ID is $my_pid"
@@ -55,7 +57,7 @@ rosparam set "/p_task_initially_active" $p_task_initially_active
 rosparam set "/number_of_nodes" $n_nodes
 rosparam set "/number_of_agents" $n_agents
 rosparam set "/coord_method" $coord_method
-rosparam set "/world_directory" "$(rospack find dmcts_world)/"
+rosparam set "/package_directory" "$(rospack find dmcts_world)/"
 rosparam set "/score_run" $score_run
 rosparam set "/dmcts_world/display_map" $world_display_map
 rosparam set "/agent_display_map" $agent_display_map
@@ -65,6 +67,8 @@ rosparam set "/flat_tasks" $flat_tasks
 rosparam set "/speed_penalty" $speed_penalty
 rosparam set "/n_task_types" 2
 rosparam set "/n_agent_types" 2
+rosparam set "/read_map" $read_map_from_params
+rosparam set "/write_map" $write_map_as_params
 echo "Loaded ROS params"
 sleep 2s
 
