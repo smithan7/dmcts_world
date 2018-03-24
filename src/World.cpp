@@ -480,13 +480,13 @@ void World::record_work(const double &reward_captured, const int &agent_index){
 }
 
 void World::loc_callback(const custom_messages::DMCTS_Loc &msg){
-	ROS_ERROR("World::odom recieved[%i]: %.2f, %.2f", msg.index, msg.xLoc, msg.yLoc);
+	//ROS_ERROR("World::odom recieved[%i]: %.2f, %.2f", msg.index, msg.xLoc, msg.yLoc);
 	try {
 		this->agents[msg.index]->update_pose(msg.xLoc, msg.yLoc, 0.0, 0.0);
 		this->agents[msg.index]->update_edge(msg.edge_x, msg.edge_y);
 		this->agent_status[msg.index] = msg.status;
 		this->agents[msg.index]->set_path(msg.path);
-        ROS_ERROR("World::agent[%i] pose updated: %.2f, %.2f and edge: %i, %i", msg.index, msg.xLoc, msg.yLoc, msg.edge_x, msg.edge_y);
+        //ROS_ERROR("World::agent[%i] pose updated: %.2f, %.2f and edge: %i, %i", msg.index, msg.xLoc, msg.yLoc, msg.edge_x, msg.edge_y);
 		if(!this->initialized_clock){
 		    ROS_WARN("World::loc_callback: clock is not initialized");
 			// check if everyone should start and clock should be initialized
@@ -892,7 +892,7 @@ if (!this->show_display){
 	// draw agents
 	for (int i = 0; i < this->n_agents; i++) {
 		// draw their location
-		if(i == this->my_agent_index){
+		if(i == this->my_agent_index || this->my_agent_index < 0){
 			cv::Point2d p1(this->agents[i]->get_pose()->get_x(), this->agents[i]->get_pose()->get_y());
 			p1.x = scale * (p1.x + this->map_width_cells/2);
 			p1.y = scale * (p1.y + this->map_height_cells/2);
