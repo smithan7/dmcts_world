@@ -19,6 +19,8 @@ agent_display_map=true
 hardware_trial=false # more, is this a search and rescue mission
 flat_tasks=false
 speed_penalty=0.5
+write_map_as_params=false
+read_map_from_params=true
 
 my_pid=$$
 echo "My process ID is $my_pid"
@@ -69,6 +71,8 @@ rosparam set "/n_agent_types" 2
 rosparam set "/desired_altitude" ${zs[agent_index]}
 rosparam set "/cruising_speed" ${cs[agent_index]}
 rosparam set "/display_costmap_path" true
+rosparam set "/read_map" $read_map_from_params
+rosparam set "/write_map" $write_map_as_params
 echo "Loaded ROS params"
 sleep 2s
 

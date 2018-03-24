@@ -20,6 +20,8 @@ agent_display_map=false
 hardware_trial=false # more, is this a search and rescue mission
 flat_tasks=false
 speed_penalty=0.5
+write_map_as_params=false
+read_map_from_params=true
  
 my_pid=$$
 echo "My process ID is $my_pid"
@@ -66,6 +68,8 @@ rosparam set "/flat_tasks" $flat_tasks
 rosparam set "/speed_penalty" $speed_penalty
 rosparam set "/n_task_types" 2
 rosparam set "/n_agent_types" 2
+rosparam set "/read_map" $read_map_from_params
+rosparam set "/write_map" $write_map_as_params
 echo "Loaded ROS params"
 sleep 2s
 
