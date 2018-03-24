@@ -480,18 +480,20 @@ void World::record_work(const double &reward_captured, const int &agent_index){
 }
 
 void World::loc_callback(const custom_messages::DMCTS_Loc &msg){
-	//ROS_ERROR("World::odom recieved[%i]: %.2f, %.2f", msg.index, msg.xLoc, msg.yLoc);
+	ROS_ERROR("World::odom recieved[%i]: %.2f, %.2f", msg.index, msg.xLoc, msg.yLoc);
 	try {
 		this->agents[msg.index]->update_pose(msg.xLoc, msg.yLoc, 0.0, 0.0);
 		this->agents[msg.index]->update_edge(msg.edge_x, msg.edge_y);
 		this->agent_status[msg.index] = msg.status;
 		this->agents[msg.index]->set_path(msg.path);
-
+        ROS_ERROR("World::agent[%i] pose updated: %.2f, %.2f and edge: %i, %i", msg.index, msg.xLoc, msg.yLoc, msg.edge_x, msg.edge_y);
 		if(!this->initialized_clock){
+		    ROS_WARN("World::loc_callback: clock is not initialized");
 			// check if everyone should start and clock should be initialized
 			bool flag = true;
 			for(size_t i=0; i<this->agent_status.size(); i++){
 				if(this->agent_status[i] == -1){
+					ROS_WARN("World::loc_callback: waiting on agent %i", int(i));
 					flag = false;
 					break;
 				}
