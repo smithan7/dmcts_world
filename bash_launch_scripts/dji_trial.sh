@@ -19,7 +19,7 @@ world_display_map=true
 agent_display_map=true
 hardware_trial=false # more, is this a search and rescue mission
 flat_tasks=false
-speed_penalty=0.5
+speed_penalty=0.1
 
 my_pid=$$
 echo "My process ID is $my_pid"

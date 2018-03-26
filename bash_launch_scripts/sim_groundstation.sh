@@ -3,7 +3,7 @@
 param=34
 coord_method=greedy_completion_reward
 agent_index=-1
-n_agents=1
+n_agents=3
 n_nodes=100
 p_task_initially_active=0.4
 score_run=true
@@ -83,7 +83,7 @@ pid="$pid $!"
 sleep 1s
 
 echo "launching XBee for ground station"
-#roslaunch xbee_bridge xbee_bridge.launch
+roslaunch xbee_bridge xbee_bridge.launch
 pid="$pid $!"
 sleep 1s
 
