@@ -83,7 +83,7 @@ pid="$pid $!"
 sleep 1s
 
 echo "launching XBee for ground station"
-roslaunch xbee_bridge xbee_bridge.launch
+#roslaunch xbee_bridge xbee_bridge.launch
 pid="$pid $!"
 sleep 1s
 

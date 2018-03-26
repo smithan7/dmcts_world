@@ -4,6 +4,7 @@ east_lon: -123.248111
 west_lon: -123.250662
 test_obstacle_img: bash_launch_scripts/hardware_imgs/willamette_park_obstacles.png
 test_environment_img: bash_launch_scripts/hardware_imgs/willamette_park.png
+map_name: willamette_park
 meters_per_cell: 1.0
 inflation_iters: 5
 inflation_box_size_meters: 19.1
@@ -12,7 +13,7 @@ node_obstacle_threshold: 150
 obstacle_increase: 5.0
 starting_xs: [35.0, 15.0, 35.0, 15.0, 20.0, 15.0, 20.0, 35.0]
 starting_ys: [35.0, 15.0, 15.0, -15.0, 35.0, 0.0, -15.0, 0.0]
-cruising_speeds: [2.5, 5.0, 2.5, 5.0, 2.5, 5.0, 2.5, 5.0]
+cruising_speeds: [0.25, 1.0, 0.25, 1.0, 0.25, 1.0, 0.25, 1.0]
 agent_altitudes: [5.0, 20.0, 7.5, 22.5, 10.0, 25.0, 10.0, 27.5]
 agent_types: [0, 1, 0, 1, 0, 1, 0, 1]
 pay_obs_costs: [true, false, true, false, true, false, true, false]

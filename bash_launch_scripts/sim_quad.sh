@@ -78,7 +78,6 @@ sleep 2s
 
 agent_index=$(rosparam get agent_index)
 
-
 echo "Launching Simulated Quad"
 roslaunch fake_dmcts_quad fake_dmcts_quad.launch agent_index:=$agent_index &
 pid="$pid $!"

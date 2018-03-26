@@ -5,8 +5,8 @@
 <num_agents>1</num_agents>
 <num_nodes>100</num_nodes>
 <reward>
-  4.7855819647990370e+02</reward>
+  4.7683179224863602e+02</reward>
 <time>
-  1.7414516448974609e+01</time>
-<cumulative_reward>4.7855819647990370e+02</cumulative_reward>
+  5.7925521135330200e+01</time>
+<cumulative_reward>4.7683179224863602e+02</cumulative_reward>
 </opencv_storage>
