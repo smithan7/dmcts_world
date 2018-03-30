@@ -183,8 +183,6 @@ World::World(ros::NodeHandle nHandle) {
 	this->map_height_cells = this->Obs_Mat.rows;
 	this->map_width_cells = this->Obs_Mat.cols;
 	
-
-
 	// reset randomization
 	srand(this->rand_seed);
 	// initialize map, tasks, and agents
@@ -203,6 +201,7 @@ World::World(ros::NodeHandle nHandle) {
 	this->initialize_PRM();
 	// initialize agents
 	// reset randomization
+
 	srand(this->rand_seed);
 	this->initialize_agents(nHandle);
 	this->initialized = true;
@@ -215,7 +214,6 @@ World::World(ros::NodeHandle nHandle) {
 	}
 
 	this->draw_prm_on_obs_mat();
-
 }
 
 
@@ -293,9 +291,16 @@ void World::get_obs_mat(){
 	cv::Mat temp_obs = cv::imread(this->test_obstacle_img, CV_LOAD_IMAGE_GRAYSCALE);
 	cv::Mat temp_env = cv::imread(this->test_environment_img, CV_LOAD_IMAGE_COLOR);
 
+	//cv::namedWindow("DMCTS_World::World::seed_obs_mat:Environment", cv::WINDOW_NORMAL);
+	//cv::imshow("DMCTS_World::World::seed_obs_mat:Environment", temp_env);
+	//cv::waitKey(100);
+
 	//cv::namedWindow("DMCTS_World::World::seed_obs_mat:Obstacles", cv::WINDOW_NORMAL);
-	//cv::imshow("DMCTS_World::World::seed_obs_mat:Obstacles", temp_env);
+	//cv::imshow("DMCTS_World::World::seed_obs_mat:Obstacles", temp_obs);
 	//cv::waitKey(0);
+
+	ROS_INFO("dmcts::World::get_obs_mat: loaded environment img: %s", this->test_environment_img.c_str());
+	ROS_INFO("dmcts::World::get_obs_mat: loaded obstacle img: %s", this->test_obstacle_img.c_str());
 
 	if(!temp_obs.data || !temp_env.data){
 		this->create_obs_mat();
