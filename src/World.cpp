@@ -287,6 +287,9 @@ void World::get_obs_mat(){
 	this->Obs_Mat = cv::Mat::zeros(cv::Size(int(this->map_width_meters*this->cells_per_meter), int(this->map_height_meters*this->cells_per_meter)), CV_8UC1);
 	this->Env_Mat = cv::Mat::zeros(cv::Size(int(this->map_width_meters*this->cells_per_meter), int(this->map_height_meters*this->cells_per_meter)), CV_8UC3);
 
+
+    ROS_WARN("World::seed_img: Loading environment img: %s", this->test_environment_img.c_str());
+    ROS_WARN("World::seed_img: Loading obstacle img: %s", this->test_obstacle_img.c_str());
 	cv::Mat temp_obs = cv::imread(this->test_obstacle_img, CV_LOAD_IMAGE_GRAYSCALE);
 	cv::Mat temp_env = cv::imread(this->test_environment_img, CV_LOAD_IMAGE_COLOR);
 
