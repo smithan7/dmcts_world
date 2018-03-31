@@ -18,7 +18,7 @@ world_display_map=true
 agent_display_map=true
 hardware_trial=false # more, is this a search and rescue mission
 flat_tasks=false
-speed_penalty=5.0
+speed_penalty=0.5
 write_map_as_params=false
 read_map_from_params=true
 
@@ -58,7 +58,7 @@ rosparam set "/p_task_initially_active" $p_task_initially_active
 rosparam set "/number_of_nodes" $n_nodes
 rosparam set "/number_of_agents" $n_agents
 rosparam set "/coord_method" $coord_method
-rosparam set "/world_directory" "$(rospack find dmcts_world)/"
+rosparam set "/package_directory" "$(rospack find dmcts_world)/"
 rosparam set "/score_run" $score_run
 rosparam set "/dmcts_world/display_map" $world_display_map
 rosparam set "/agent_display_map" $agent_display_map
