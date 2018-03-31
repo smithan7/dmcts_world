@@ -428,18 +428,18 @@ void World::request_work_callback(const custom_messages::DMCTS_Request_Work &msg
 
                 if(this->nodes[msg.n_index]->is_active()){
                     if (work_done > 0.0){
+		                ROS_INFO("Agent[%i] worked: %0.2f (u) on task[%i]", msg.a_index, work_done, msg.n_index);
                         complete = 1; // Succesfully did some work, but task is still active
                     }
                     else{
+		                ROS_WARN("Agent[%i] FAILED to work on task[%i]", msg.a_index, msg.n_index);
                         complete = -1; // Task is active and I did no work
                     }
                 }
                 else{
+                	ROS_INFO("Agent[%i] completed task[%i] and collected %0.2f", msg.a_index, msg.n_index, reward_collected);
                     complete = 0; // Task is now complete
-                }        
-                
-                this->publish_work_status(msg.n_index, msg.a_index, complete);
-
+                }
 
 			    if(this->score_run){
 			        this->record_work(reward_collected, msg.a_index);
