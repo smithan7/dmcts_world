@@ -1,6 +1,6 @@
-alpha: 0.0473006757
-beta: 1.3043370712
-gamma: 0.9792068304
-epsilon: 0.4702117011
-min_sampling_threshold: 0.240479139
+alpha: 0.99
+beta: 1.41
+gamma: 0.999
+epsilon: 0.5
+min_sampling_threshold: 0.25
 search_depth: 8.0

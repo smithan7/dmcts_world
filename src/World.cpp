@@ -912,7 +912,7 @@ if (!this->show_display){
 	// draw agents
 	for (int i = 0; i < this->n_agents; i++) {
 		// draw their location
-		if(i == this->my_agent_index || this->my_agent_index < 0){
+		//if(i == this->my_agent_index || this->my_agent_index < 0){
 			cv::Point2d p1(this->agents[i]->get_pose()->get_x(), this->agents[i]->get_pose()->get_y());
 			p1.x = scale * (p1.x + this->map_width_cells/2);
 			p1.y = scale * (p1.y + this->map_height_cells/2);
@@ -956,7 +956,7 @@ if (!this->show_display){
 					p_loc = p_cur;
 				}
 			}
-		}
+		//}
 	}
 	
 	cv::putText(map, this->task_selection_method, cv::Point2d(40.0, des_y + 30.0), CV_FONT_HERSHEY_COMPLEX, 1.0, white, 3);
