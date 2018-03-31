@@ -4,7 +4,7 @@ param=34
 coord_method=greedy_completion_reward
 
 agent_index=-1
-n_agents=1
+n_agents=3
 n_nodes=100
 p_task_initially_active=0.4
 score_run=true
@@ -12,7 +12,7 @@ gazebo_obstacles=false
 use_gazebo=false
 cruising_speed=1.0
 use_xbee=true
-end_time=12000.0
+end_time=600.0
 way_point_tol=5.0
 use_hector_quad=true
 world_display_map=true
