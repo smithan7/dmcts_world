@@ -1,8 +1,22 @@
 #!/bin/bash
 
-param=34
-coord_method=greedy_completion_reward
+coord_method=$1
 
+if [ $coord_method = 'g' ];
+then
+    coord_method="greedy_completion_reward"
+fi
+
+
+if [ $coord_method = 'm' ];
+then
+    coord_method="mcts_task_by_completion_reward_gradient"
+fi
+
+echo "coord_method = ${coord_method}"
+sleep 5s
+
+param=34
 agent_index=-1
 n_agents=3
 n_nodes=100
