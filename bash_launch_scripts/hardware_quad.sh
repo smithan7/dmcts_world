@@ -108,12 +108,16 @@ sleep 5s
 echo "launching XBee for Agent"
 roslaunch xbee_bridge xbee_bridge.launch &
 pid="$pid $!"
-sleep 3s
-
-echo "launching ZED SDK"
-roslaunch zed_wrapper zed.launch &
-pid="$pid $!"
 sleep 5s
 
+echo "launch zed"
+roslaunch mcts_hardware_trials record_bag.launch &
+pid="$pid $!"
+sleep 10s
+
 echo "initialiizing ROS-Bag"
-rosbag record -a -O /media/nvidia/SSD2/bags_results/osu_field_${coord_method}_${agent_index}_${param_number}.bag
+rosbag record -O /media/nvidia/SSD2/bags_results/osu_field_${coord_method}_${agent_index}_${param_number}.bag /dmcts_1/costmap_bridge/visualization_marker /dmcts_1/travel_goal /dmcts_master/coordination /dmcts_master/loc /dmcts_master/pulse /dmcts_master/request_task_list /dmcts_master/request_work /dmcts_master/task_list /dmcts_master/work_status /global/odom /uav1/cmd_vel /xbee/chatter /dji_sdk/global_position /dji_sdk/local_position &
+
+
+
+
