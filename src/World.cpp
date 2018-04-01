@@ -473,7 +473,7 @@ void World::record_work(const double &reward_captured, const int &agent_index){
     rf.append(this->world_directory);
     rf.append("results/");
     char temp[200];
-    int n = sprintf(temp, "results_for_param_file_%i_%i_%s.xml", this->rand_seed, this->n_agents, this->task_selection_method.c_str());
+    int n = sprintf(temp, "results_for_param_file_%s_%i_%i_%s.xml", this->map_name.c_str(),this->rand_seed, this->n_agents, this->task_selection_method.c_str());
     rf.append(temp);//this->param_file = temp_char;
     cv::FileStorage fs;
     fs.open(rf, cv::FileStorage::WRITE);
@@ -482,6 +482,7 @@ void World::record_work(const double &reward_captured, const int &agent_index){
     // randomizing stuff in a controlled way
     fs << "task_selection_method" << this->task_selection_method;
     fs << "param" << this->rand_seed;
+    fs << "map_name" << this->map_name.c_str();
     fs << "num_agents" << this->n_agents;
     fs << "num_nodes" << this->n_nodes;
     fs << "reward" << this->reward_captured;
@@ -493,8 +494,13 @@ void World::record_work(const double &reward_captured, const int &agent_index){
     fs << "cumulative_reward" << cum_rew;
 
 
+
+    std::string of;
+    of.append(this->world_directory);
+    of.append("big_data.csv");
     std::ofstream outfile;
-  	outfile.open("/home/andy/catkin_ws/src/dmcts_world/worlds/big_data.csv", std::ios_base::app);
+    
+  	outfile.open(of, std::ios_base::app);
   	outfile << this->task_selection_method << "," << this->rand_seed << "," << this->n_agents << "," << this->n_nodes << "," << this->c_time << "," << cum_rew << "\n";
   	outfile.close();
 }
