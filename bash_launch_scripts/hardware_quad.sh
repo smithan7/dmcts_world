@@ -108,7 +108,12 @@ sleep 5s
 echo "launching XBee for Agent"
 roslaunch xbee_bridge xbee_bridge.launch &
 pid="$pid $!"
-sleep 1s
+sleep 3s
+
+echo "launching ZED SDK"
+roslaunch zed_wrapper zed.launch &
+pid="$pid $!"
+sleep 5s
 
 echo "initialiizing ROS-Bag"
 rosbag record -a -O /home/andy/catkin_ws/bags_results/osu_field_${coord_method}_${agent_index}_${param_number}.bag
