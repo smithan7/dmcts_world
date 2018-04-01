@@ -116,4 +116,4 @@ pid="$pid $!"
 sleep 5s
 
 echo "initialiizing ROS-Bag"
-rosbag record -a -O /home/andy/catkin_ws/bags_results/osu_field_${coord_method}_${agent_index}_${param_number}.bag
+rosbag record -a -O /media/nvidia/SSD2/bags_results/osu_field_${coord_method}_${agent_index}_${param_number}.bag
