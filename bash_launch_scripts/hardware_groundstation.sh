@@ -94,7 +94,9 @@ pid="$pid $!"
 sleep 1s
 
 echo "launching XBee for ground station"
-roslaunch xbee_bridge xbee_bridge.launch
+roslaunch xbee_bridge xbee_bridge.launch &
 pid="$pid $!"
 sleep 1s
 
+echo "initialiizing ROS-Bag"
+rosbag record -a -O /home/andy/catkin_ws/bags_results/big_test_${coord_method}_${agent_index}_${param_number}.bag
