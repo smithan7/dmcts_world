@@ -3,4 +3,4 @@ beta: 1.41
 gamma: 0.999
 epsilon: 0.5
 min_sampling_threshold: 0.25
-search_depth: 8.0
+search_depth: 4.0
