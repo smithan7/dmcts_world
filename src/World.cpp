@@ -138,7 +138,7 @@ World::World(ros::NodeHandle nHandle) {
 	    this->map_height_meters = 100.0;
 	}
 	else{
-	this->map_width_meters = this->get_global_distance(this->north_lat, this->west_lon, this->north_lat, this->east_lon);
+		this->map_width_meters = this->get_global_distance(this->north_lat, this->west_lon, this->north_lat, this->east_lon);
 	    this->map_height_meters = this->get_global_distance(this->north_lat, this->west_lon, this->south_lat, this->west_lon);
 	}
 

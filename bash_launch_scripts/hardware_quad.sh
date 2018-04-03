@@ -105,18 +105,18 @@ roslaunch dmcts dmcts_dji.launch agent_index:=$agent_index &
 pid="$pid $!" 
 sleep 5s
 
-echo "launching XBee for Agent"
-roslaunch xbee_bridge xbee_bridge.launch &
-pid="$pid $!"
-sleep 5s
-
-echo "launch zed"
-roslaunch mcts_hardware_trials record_bag.launch &
-pid="$pid $!"
-sleep 10s
-
 echo "initialiizing ROS-Bag"
-rosbag record -O ~/catkin_ws/bags_results/osu_field_${coord_method}_${agent_index}_${param_number}.bag /dmcts_1/costmap_bridge/visualization_marker /dmcts_1/travel_goal /dmcts_master/coordination /dmcts_master/loc /dmcts_master/pulse /dmcts_master/request_task_list /dmcts_master/request_work /dmcts_master/task_list /dmcts_master/work_status /global/odom /uav1/cmd_vel /xbee/chatter /dji_sdk/global_position /dji_sdk/local_position
+gnome-terminal -e 'bash -c "rosbag record -O ~/catkin_ws/bags_results/osu_field_${coord_method}_${agent_index}_${param_number}.bag /dmcts_1/costmap_bridge/visualization_marker /dmcts_1/travel_goal /dmcts_master/coordination /dmcts_master/loc /dmcts_master/pulse /dmcts_master/request_task_list /dmcts_master/request_work /dmcts_master/task_list /dmcts_master/work_status /global/odom /uav1/cmd_vel /xbee/chatter /dji_sdk/global_position /dji_sdk/local_position; exec bash"'
+pid="$pid $!"
+sleep 1s
+
+echo "record ROS bag for ZED"
+gnome-terminal -e 'bash -c "roslaunch mcts_hardware_trials record_bag.launch; exec bash"'
+pid="$pid $!"
+sleep 1s
+
+echo "launching XBee for Agent"
+roslaunch xbee_bridge xbee_bridge.launch
 pid="$pid $!"
 sleep 1s
 

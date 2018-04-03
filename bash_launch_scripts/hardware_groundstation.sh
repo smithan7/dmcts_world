@@ -29,6 +29,7 @@ world_display_map=true
 agent_display_map=false
 hardware_trial=false # more, is this a search and rescue mission
 flat_tasks=false
+use_gazebo=false
 speed_penalty=0.5
 write_map_as_params=false
 read_map_from_params=true
@@ -93,8 +94,13 @@ roslaunch dmcts_world dmcts_world.launch &
 pid="$pid $!"
 sleep 1s
 
+echo "initialiizing ROS-Bag"
+gnome-terminal -e 'bash -c "rosbag record -a -O ~/catkin_ws/bags_results/osu_field_'$coord_method'_'$agent_index'_'$param_number'.bag; exec bash"'
+pid="$pid $!"
+sleep 1s
+
 echo "launching XBee for ground station"
-roslaunch xbee_bridge xbee_bridge.launch &
+roslaunch xbee_bridge xbee_bridge.launch
 pid="$pid $!"
 sleep 1s
 

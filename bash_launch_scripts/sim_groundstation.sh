@@ -33,7 +33,7 @@ speed_penalty=0.5
 write_map_as_params=false
 read_map_from_params=true
 gazebo_obstacles=false
-use_gazeob=false
+use_gazebo=false
  
 my_pid=$$
 echo "My process ID is $my_pid"
@@ -95,12 +95,15 @@ roslaunch dmcts_world dmcts_world.launch &
 pid="$pid $!"
 sleep 1s
 
-echo "launching XBee for ground station"
-roslaunch xbee_bridge xbee_bridge.launch &
+
+echo "initialiizing ROS-Bag"
+gnome-terminal -e 'bash -c "rosbag record -a -O ~/catkin_ws/bags_results/osu_field_'$coord_method'_'$agent_index'_'$param_number'.bag; exec bash"'
 pid="$pid $!"
 sleep 1s
 
-#echo "initialiizing ROS-Bag"
-#rosbag record -a -O ~/catkin_ws/bags_results/osu_field_${coord_method}_${agent_index}_${param_number}.bag
-#pid="$pid $!"
-#sleep 1s
+
+echo "launching XBee for ground station"
+roslaunch xbee_bridge xbee_bridge.launch 
+pid="$pid $!"
+sleep 1s
+

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<task_selection_method>mcts_task_by_completion_reward_gradient</task_selection_method>
+<param>34</param>
+<map_name>osu_field</map_name>
+<num_agents>3</num_agents>
+<num_nodes>100</num_nodes>
+<reward>
+  4.6253614333588843e+02</reward>
+<time>
+  1.4000176668167114e+01</time>
+<cumulative_reward>4.6253614333588843e+02</cumulative_reward>
+</opencv_storage>
