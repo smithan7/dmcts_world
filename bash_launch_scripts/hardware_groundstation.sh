@@ -98,8 +98,3 @@ roslaunch xbee_bridge xbee_bridge.launch &
 pid="$pid $!"
 sleep 1s
 
-echo "initialiizing ROS-Bag"
-rosbag record -a -O ~/catkin_ws/bags_results/osu_field_${coord_method}_${agent_index}_${param_number}.bag
-pid="$pid $!"
-sleep 1s
-

@@ -24,7 +24,7 @@ p_task_initially_active=0.4
 score_run=true
 end_time=300.0
 way_point_tol=5.0
-use_hector_quad=true
+use_hector_quad=false
 world_display_map=true
 agent_display_map=false
 hardware_trial=false # more, is this a search and rescue mission
@@ -32,6 +32,8 @@ flat_tasks=false
 speed_penalty=0.5
 write_map_as_params=false
 read_map_from_params=true
+gazebo_obstacles=false
+use_gazeob=false
  
 my_pid=$$
 echo "My process ID is $my_pid"
@@ -98,7 +100,7 @@ roslaunch xbee_bridge xbee_bridge.launch &
 pid="$pid $!"
 sleep 1s
 
-echo "initialiizing ROS-Bag"
-rosbag record -a -O ~/catkin_ws/bags_results/osu_field_${coord_method}_${agent_index}_${param_number}.bag
-pid="$pid $!"
-sleep 1s
+#echo "initialiizing ROS-Bag"
+#rosbag record -a -O ~/catkin_ws/bags_results/osu_field_${coord_method}_${agent_index}_${param_number}.bag
+#pid="$pid $!"
+#sleep 1s
