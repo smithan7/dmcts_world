@@ -41,7 +41,7 @@ speed_penalty=0.5
 write_map_as_params=false
 read_map_from_params=true
 record_bag=true
-record_zed=true
+record_zed=false
 use_xbee=true
 
 my_pid=$$
