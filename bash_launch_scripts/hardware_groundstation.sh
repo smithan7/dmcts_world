@@ -1,5 +1,14 @@
 #!/bin/bash
 
+if [ $# -eq 0 ]
+then
+	while true
+	do
+		echo "************ No coordination method provided ******************"
+		sleep 1s
+	done
+fi
+
 coord_method=$1
 
 if [ $coord_method = 'g' ];
@@ -14,7 +23,7 @@ then
 fi
 
 echo "coord_method = ${coord_method}"
-sleep 5s
+sleep 3s
 
 param=34
 agent_index=-1
@@ -33,6 +42,8 @@ use_gazebo=false
 speed_penalty=0.5
 write_map_as_params=false
 read_map_from_params=true
+use_xbee=true
+record_bag=true
  
 my_pid=$$
 echo "My process ID is $my_pid"
@@ -94,12 +105,23 @@ roslaunch dmcts_world dmcts_world.launch &
 pid="$pid $!"
 sleep 1s
 
-echo "initialiizing ROS-Bag"
-gnome-terminal -e 'bash -c "rosbag record -a -O ~/catkin_ws/bags_results/osu_field_'$coord_method'_'$agent_index'_'$param_number'.bag; exec bash"'
-pid="$pid $!"
-sleep 1s
 
-echo "launching XBee for ground station"
-roslaunch xbee_bridge xbee_bridge.launch
-pid="$pid $!"
-sleep 1s
+if $record_bag
+then
+	echo "initialiizing ROS-Bag"
+	gnome-terminal -e 'bash -c "rosbag record -a -O ~/catkin_ws/bags_results/osu_field_'$coord_method'_'$agent_index'_'$param_number'.bag; exec bash"'
+	pid="$pid $!"
+	sleep 1s
+fi
+
+
+if $use_xbee
+then
+	echo "launching XBee for ground station"
+	roslaunch xbee_bridge xbee_bridge.launch 
+	pid="$pid $!"
+	sleep 1s
+fi
+
+trap "echo Killing all processes.; kill -2 TERM $pid; exit" SIGINT SIGTERM
+sleep 24h

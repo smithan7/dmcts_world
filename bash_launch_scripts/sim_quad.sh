@@ -1,5 +1,14 @@
 #!/bin/bash
 
+if [ $# -eq 0 ]
+then
+	while true
+	do
+		echo "************ No coordination method provided ******************"
+		sleep 1s
+	done
+fi
+
 coord_method=$1
 
 if [ $coord_method = 'g' ];
@@ -14,7 +23,7 @@ then
 fi
 
 echo "coord_method = ${coord_method}"
-sleep 5s
+sleep 3s
 
 param=34
 n_nodes=100
@@ -31,6 +40,9 @@ flat_tasks=false
 speed_penalty=0.5
 write_map_as_params=false
 read_map_from_params=true
+record_bag=false
+record_zed=false
+use_xbee=true
 
 my_pid=$$
 echo "My process ID is $my_pid"
@@ -63,7 +75,6 @@ rosparam load "$(rospack find dmcts_world)/bash_launch_scripts/launch_params/xbe
 rosparam set "/param_number" $param
 rosparam set "/end_time" $end_time
 rosparam set "/way_point_tol" $way_point_tol
-rosparam set "/use_gazebo_obstacles" $gazebo_obstacles
 rosparam set "/p_task_initially_active" $p_task_initially_active
 rosparam set "/number_of_nodes" $n_nodes
 rosparam set "/number_of_agents" $n_agents
@@ -72,7 +83,6 @@ rosparam set "/package_directory" "$(rospack find dmcts_world)/"
 rosparam set "/score_run" $score_run
 rosparam set "/dmcts_world/display_map" $world_display_map
 rosparam set "/agent_display_map" $agent_display_map
-rosparam set "/use_gazebo" $use_gazebo
 rosparam set "/hardware_trial" $hardware_trial
 rosparam set "/flat_tasks" $flat_tasks
 rosparam set "/speed_penalty" $speed_penalty
@@ -98,17 +108,29 @@ roslaunch dmcts dmcts_dji.launch agent_index:=$agent_index &
 pid="$pid $!" 
 sleep 5s
 
-echo "initialiizing ROS-Bag"
-gnome-terminal -e 'bash -c "rosbag record -O ~/catkin_ws/bags_results/osu_field_'$coord_method'_'$agent_index'_'$param_number'.bag /dmcts_1/costmap_bridge/visualization_marker /dmcts_1/travel_goal /dmcts_master/coordination /dmcts_master/loc /dmcts_master/pulse /dmcts_master/request_task_list /dmcts_master/request_work /dmcts_master/task_list /dmcts_master/work_status /global/odom /uav1/cmd_vel /xbee/chatter /dji_sdk/global_position /dji_sdk/local_position; exec bash"'
-pid="$pid $!"
-sleep 1s
+if $record_bag
+then
+	echo "initialiizing ROS-Bag"
+	gnome-terminal -e 'bash -c "rosbag record -O ~/catkin_ws/bags_results/osu_field_'$coord_method'_'$agent_index'_'$param_number'.bag /dmcts_1/costmap_bridge/visualization_marker /dmcts_1/travel_goal /dmcts_master/coordination /dmcts_master/loc /dmcts_master/pulse /dmcts_master/request_task_list /dmcts_master/request_work /dmcts_master/task_list /dmcts_master/work_status /global/odom /uav1/cmd_vel /xbee/chatter /dji_sdk/global_position /dji_sdk/local_position; exec bash"'
+	pid="$pid $!"
+	sleep 1s
+fi
 
-echo "record ROS bag for ZED"
-gnome-terminal -e 'bash -c "roslaunch mcts_hardware_trials record_bag.launch; exec bash"'
-pid="$pid $!"
-sleep 1s
+if $record_zed
+then
+	echo "record ROS bag for ZED"
+	gnome-terminal -e 'bash -c "roslaunch mcts_hardware_trials record_bag.launch; exec bash"'
+	pid="$pid $!"
+	sleep 1s
+fi
 
-echo "launching XBee for Agent"
-roslaunch xbee_bridge xbee_bridge.launch
-pid="$pid $!"
-sleep 1s
+if $use_xbee
+then
+	echo "launching XBee for Agent"
+	roslaunch xbee_bridge xbee_bridge.launch
+	pid="$pid $!"
+	sleep 1s
+fi
+
+trap "echo Killing all processes.; kill -2 TERM $pid; exit" SIGINT SIGTERM
+sleep 24h
