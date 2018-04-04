@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<task_selection_method>greedy_completion_reward</task_selection_method>
+<param>34</param>
+<map_name>osu_field</map_name>
+<num_agents>2</num_agents>
+<num_nodes>100</num_nodes>
+<reward>
+  4.6253614333588843e+02 4.5799440418638090e+02 4.7542732034329583e+02
+  4.5352312290413334e+02 4.2820356269636108e+02 4.3407735042610864e+02</reward>
+<time>
+  3.9989259719848633e+01 5.8989167451858521e+01 9.0990554809570312e+01
+  9.7990770578384399e+01 1.0798995614051819e+02 1.4599014377593994e+02</time>
+<cumulative_reward>2.7117619038921684e+03</cumulative_reward>
+</opencv_storage>
