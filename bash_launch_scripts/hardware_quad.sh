@@ -19,7 +19,7 @@ sleep 5s
 param=34
 n_nodes=100
 p_task_initially_active=0.4
-n_agents=3
+n_agents=2
 score_run=true
 end_time=300.0
 way_point_tol=1.0
@@ -119,5 +119,3 @@ echo "launching XBee for Agent"
 roslaunch xbee_bridge xbee_bridge.launch
 pid="$pid $!"
 sleep 1s
-
-
