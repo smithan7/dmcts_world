@@ -28,7 +28,7 @@ sleep 3s
 param=34
 n_nodes=100
 p_task_initially_active=0.4
-n_agents=2
+n_agents=1
 score_run=true
 end_time=300.0
 way_point_tol=1.0
@@ -40,9 +40,9 @@ flat_tasks=false
 speed_penalty=0.25
 write_map_as_params=false
 read_map_from_params=true
-record_bag=true
+record_bag=false
 record_zed=false
-use_xbee=true
+use_xbee=false
 
 my_pid=$$
 echo "My process ID is $my_pid"

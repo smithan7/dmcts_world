@@ -7,7 +7,7 @@ test_environment_img: bash_launch_scripts/hardware_imgs/osu_field.png
 map_name: osu_field
 meters_per_cell: 1.0
 inflation_iters: 5
-inflation_box_size_meters: 19.1
+inflation_box_size_meters: 9.1
 inflation_sigma: 20.0
 node_obstacle_threshold: 70
 obstacle_increase: 5.0
