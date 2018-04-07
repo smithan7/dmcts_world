@@ -28,10 +28,10 @@ sleep 3s
 param=34
 n_nodes=100
 p_task_initially_active=0.4
-n_agents=2
-score_run=true
-end_time=300.0
-way_point_tol=1.0
+n_agents=1
+score_run=false
+end_time=500.0
+way_point_tol=5.0
 use_hector_quad=true
 world_display_map=true
 agent_display_map=true
