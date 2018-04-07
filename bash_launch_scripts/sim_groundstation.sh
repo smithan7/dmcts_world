@@ -43,7 +43,7 @@ write_map_as_params=false
 read_map_from_params=true
 gazebo_obstacles=false
 use_gazebo=false
-use_xbee=false
+use_xbee=true
 record_bag=false
  
 my_pid=$$
