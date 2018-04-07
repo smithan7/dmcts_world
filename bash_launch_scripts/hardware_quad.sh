@@ -42,7 +42,7 @@ write_map_as_params=false
 read_map_from_params=true
 record_bag=false
 record_zed=false
-use_xbee=false
+use_xbee=true
 
 my_pid=$$
 echo "My process ID is $my_pid"
