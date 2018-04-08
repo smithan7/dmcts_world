@@ -28,7 +28,7 @@ sleep 3s
 param=34
 n_nodes=100
 p_task_initially_active=0.4
-n_agents=1
+n_agents=3
 score_run=true
 end_time=500.0
 way_point_tol=5.0
