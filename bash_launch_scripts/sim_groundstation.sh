@@ -30,7 +30,7 @@ agent_index=-1
 n_agents=3
 n_nodes=100
 p_task_initially_active=0.4
-score_run=false
+score_run=true
 end_time=500.0
 way_point_tol=5.0
 use_hector_quad=false
@@ -44,7 +44,7 @@ read_map_from_params=true
 gazebo_obstacles=false
 use_gazebo=false
 use_xbee=true
-record_bag=false
+record_bag=true
 rand_num=$(date +%N | sed -e 's/000$//' -e 's/^0//')
  
 my_pid=$$
