@@ -40,9 +40,10 @@ flat_tasks=false
 speed_penalty=0.25
 write_map_as_params=false
 read_map_from_params=true
-record_bag=false
+record_bag=true
 record_zed=false
 use_xbee=true
+rand_num=$(date +%N | sed -e 's/000$//' -e 's/^0//')
 
 my_pid=$$
 echo "My process ID is $my_pid"
@@ -120,7 +121,7 @@ sleep 5s
 if $record_bag
 then
 	echo "initialiizing ROS-Bag"
-	gnome-terminal -e 'bash -c "rosbag record -O ~/catkin_ws/bags_results/osu_field_'$coord_method'_'$agent_index'_'$param_number'.bag /dmcts_1/costmap_bridge/visualization_marker /dmcts_1/travel_goal /dmcts_master/coordination /dmcts_master/loc /dmcts_master/pulse /dmcts_master/request_task_list /dmcts_master/request_work /dmcts_master/task_list /dmcts_master/work_status /global/odom /uav1/cmd_vel /xbee/chatter /dji_sdk/global_position /dji_sdk/local_position; exec bash"'
+	gnome-terminal -e 'bash -c "rosbag record -O ~/catkin_ws/bags_results/osu_field_'$coord_method'_'$agent_index'_'$param'_'$rand_num'.bag /dmcts_1/costmap_bridge/visualization_marker /dmcts_1/travel_goal /dmcts_master/coordination /dmcts_master/loc /dmcts_master/pulse /dmcts_master/request_task_list /dmcts_master/request_work /dmcts_master/task_list /dmcts_master/work_status /global/odom /uav1/cmd_vel /xbee/chatter /dji_sdk/global_position /dji_sdk/local_position; exec bash"'
 	pid="$pid $!"
 	sleep 1s
 fi

@@ -44,6 +44,7 @@ write_map_as_params=false
 read_map_from_params=true
 use_xbee=true
 record_bag=true
+rand_num=$(date +%N | sed -e 's/000$//' -e 's/^0//')
  
 my_pid=$$
 echo "My process ID is $my_pid"
@@ -109,7 +110,7 @@ sleep 1s
 if $record_bag
 then
 	echo "initialiizing ROS-Bag"
-	gnome-terminal -e 'bash -c "rosbag record -a -O ~/catkin_ws/bags_results/osu_field_'$coord_method'_'$agent_index'_'$param_number'.bag; exec bash"'
+	gnome-terminal -e 'bash -c "rosbag record -a -O ~/catkin_ws/bags_results/osu_field_'$coord_method'_'$agent_index'_'$param'_'$rand_num'.bag; exec bash"'
 	pid="$pid $!"
 	sleep 1s
 fi
