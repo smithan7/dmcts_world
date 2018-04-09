@@ -43,8 +43,8 @@ write_map_as_params=false
 read_map_from_params=true
 gazebo_obstacles=false
 use_gazebo=false
-use_xbee=true
-record_bag=true
+use_xbee=false
+record_bag=false
 rand_num=$(date +%N | sed -e 's/000$//' -e 's/^0//')
  
 my_pid=$$
